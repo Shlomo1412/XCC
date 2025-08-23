@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basalt 2 UI Designer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="logo">
+                    <span class="logo-icon">⚡</span>
+                    Basalt 2 UI Designer
+                </h1>
+            </div>
+            <div class="header-center">
+                <div class="terminal-size-controls">
+                    <label for="terminalPreset">Terminal Size:</label>
+                    <select id="terminalPreset" class="preset-select">
+                        <option value="custom">Custom</option>
+                        <option value="computer" selected>Computer (51x19)</option>
+                        <option value="pocket">Pocket Computer (26x20)</option>
+                        <option value="monitor">Monitor 2x2 (7x5)</option>
+                        <option value="monitor3x2">Monitor 3x2 (10x6)</option>
+                        <option value="monitor5x4">Monitor 5x4 (16x12)</option>
+                    </select>
+                    <div class="size-inputs">
+                        <input type="number" id="terminalWidth" min="1" max="164" value="51" placeholder="Width">
+                        <span>×</span>
+                        <input type="number" id="terminalHeight" min="1" max="81" value="19" placeholder="Height">
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-secondary" id="exportBtn">
+                    📥 Export Code
+                </button>
+                <button class="btn btn-secondary" id="importBtn">
+                    📤 Import
+                </button>
+                <button class="btn btn-primary" id="previewBtn">
+                    👁️ Live Preview
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar - Element Palette -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>Elements</h3>
+                    <div class="element-palette">
+                        <!-- Container Elements -->
+                        <div class="element-category">
+                            <h4>Containers</h4>
+                            <div class="element-grid">
+                                <div class="element-item" data-type="BaseFrame">
+                                    <div class="element-icon">🖼️</div>
+                                    <span>Frame</span>
+                                </div>
+                                <div class="element-item" data-type="Container">
+                                    <div class="element-icon">📦</div>
+                                    <span>Container</span>
+                                </div>
+                                <div class="element-item" data-type="Flexbox">
+                                    <div class="element-icon">📐</div>
+                                    <span>Flexbox</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Elements -->
+                        <div class="element-category">
+                            <h4>Basic</h4>
+                            <div class="element-grid">
+                                <div class="element-item" data-type="Label">
+                                    <div class="element-icon">🏷️</div>
+                                    <span>Label</span>
+                                </div>
+                                <div class="element-item" data-type="Button">
+                                    <div class="element-icon">🔘</div>
+                                    <span>Button</span>
+                                </div>
+                                <div class="element-item" data-type="Input">
+                                    <div class="element-icon">📝</div>
+                                    <span>Input</span>
+                                </div>
+                                <div class="element-item" data-type="Checkbox">
+                                    <div class="element-icon">☑️</div>
+                                    <span>Checkbox</span>
+                                </div>
+                                <div class="element-item" data-type="Image">
+                                    <div class="element-icon">🖼️</div>
+                                    <span>Image</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Elements -->
+                        <div class="element-category">
+                            <h4>Advanced</h4>
+                            <div class="element-grid">
+                                <div class="element-item" data-type="List">
+                                    <div class="element-icon">📋</div>
+                                    <span>List</span>
+                                </div>
+                                <div class="element-item" data-type="Table">
+                                    <div class="element-icon">📊</div>
+                                    <span>Table</span>
+                                </div>
+                                <div class="element-item" data-type="Tree">
+                                    <div class="element-icon">🌳</div>
+                                    <span>Tree</span>
+                                </div>
+                                <div class="element-item" data-type="Dropdown">
+                                    <div class="element-icon">📋</div>
+                                    <span>Dropdown</span>
+                                </div>
+                                <div class="element-item" data-type="Menu">
+                                    <div class="element-icon">🍔</div>
+                                    <span>Menu</span>
+                                </div>
+                                <div class="element-item" data-type="TextBox">
+                                    <div class="element-icon">📄</div>
+                                    <span>TextBox</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="element-category">
+                            <h4>Controls</h4>
+                            <div class="element-grid">
+                                <div class="element-item" data-type="Slider">
+                                    <div class="element-icon">🎚️</div>
+                                    <span>Slider</span>
+                                </div>
+                                <div class="element-item" data-type="ProgressBar">
+                                    <div class="element-icon">📊</div>
+                                    <span>Progress</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="element-category">
+                            <h4>Charts</h4>
+                            <div class="element-grid">
+                                <div class="element-item" data-type="Graph">
+                                    <div class="element-icon">📈</div>
+                                    <span>Graph</span>
+                                </div>
+                                <div class="element-item" data-type="BarChart">
+                                    <div class="element-icon">📊</div>
+                                    <span>Bar Chart</span>
+                                </div>
+                                <div class="element-item" data-type="LineChart">
+                                    <div class="element-icon">📈</div>
+                                    <span>Line Chart</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Special -->
+                        <div class="element-category">
+                            <h4>Special</h4>
+                            <div class="element-grid">
+                                <div class="element-item" data-type="Display">
+                                    <div class="element-icon">🖥️</div>
+                                    <span>Display</span>
+                                </div>
+                                <div class="element-item" data-type="BigFont">
+                                    <div class="element-icon">🔤</div>
+                                    <span>BigFont</span>
+                                </div>
+                                <div class="element-item" data-type="Program">
+                                    <div class="element-icon">💻</div>
+                                    <span>Program</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Canvas Area -->
+            <main class="canvas-area">
+                <div class="canvas-header">
+                    <div class="canvas-title">
+                        <h3>Design Canvas</h3>
+                        <span class="canvas-info" id="canvasInfo">51×19 Computer Terminal</span>
+                    </div>
+                    <div class="canvas-controls">
+                        <button class="btn btn-sm" id="gridToggle">📐 Grid</button>
+                        <button class="btn btn-sm" id="clearCanvas">🗑️ Clear</button>
+                    </div>
+                </div>
+                <div class="canvas-container">
+                    <div class="canvas" id="canvas">
+                        <div class="terminal-preview" id="terminalPreview">
+                            <!-- Terminal grid will be generated here -->
+                        </div>
+                        <div class="drop-zone" id="dropZone">
+                            <div class="drop-zone-content">
+                                <div class="drop-zone-icon">🎨</div>
+                                <h3>Start Designing</h3>
+                                <p>Drag elements from the sidebar to begin creating your Basalt UI</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Properties Panel -->
+            <aside class="properties-panel">
+                <div class="properties-header">
+                    <h3>Properties</h3>
+                    <div class="element-hierarchy">
+                        <button class="btn btn-sm" id="hierarchyBtn">🌲 Hierarchy</button>
+                    </div>
+                </div>
+                <div class="properties-content" id="propertiesContent">
+                    <div class="no-selection">
+                        <div class="no-selection-icon">🎯</div>
+                        <p>Select an element to edit its properties</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Modals -->
+        <!-- Export Modal -->
+        <div class="modal" id="exportModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Export Basalt Code</h3>
+                    <button class="modal-close" data-modal="exportModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="export-options">
+                        <div class="export-option">
+                            <input type="radio" id="exportLua" name="exportType" value="lua" checked>
+                            <label for="exportLua">Lua Code</label>
+                        </div>
+                        <div class="export-option">
+                            <input type="radio" id="exportJSON" name="exportType" value="json">
+                            <label for="exportJSON">JSON Data</label>
+                        </div>
+                        <div class="export-option">
+                            <input type="radio" id="exportXML" name="exportType" value="xml">
+                            <label for="exportXML">XML (Basalt Plugin)</label>
+                        </div>
+                    </div>
+                    <div class="code-output">
+                        <pre><code id="exportCode" class="language-lua"></code></pre>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" id="copyCodeBtn">📋 Copy Code</button>
+                        <button class="btn btn-primary" id="downloadCodeBtn">💾 Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Modal -->
+        <div class="modal" id="importModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Import Design</h3>
+                    <button class="modal-close" data-modal="importModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="import-options">
+                        <div class="import-method">
+                            <label for="importFile">Import from File:</label>
+                            <input type="file" id="importFile" accept=".json,.lua,.xml">
+                        </div>
+                        <div class="import-method">
+                            <label for="importCode">Or paste code:</label>
+                            <textarea id="importCode" placeholder="Paste your Basalt code or JSON here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" data-modal="importModal">Cancel</button>
+                        <button class="btn btn-primary" id="importBtn">Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview Modal -->
+        <div class="modal large" id="previewModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Live Preview</h3>
+                    <div class="preview-controls">
+                        <button class="btn btn-sm" id="refreshPreview">🔄 Refresh</button>
+                        <button class="modal-close" data-modal="previewModal">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="preview-container">
+                        <div class="terminal-simulation" id="terminalSimulation">
+                            <!-- Live preview will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Element Hierarchy Modal -->
+        <div class="modal" id="hierarchyModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Element Hierarchy</h3>
+                    <button class="modal-close" data-modal="hierarchyModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="hierarchy-tree" id="hierarchyTree">
+                        <!-- Element hierarchy will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
