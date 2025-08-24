@@ -19,8 +19,13 @@
             <div class="header-left">
                 <h1 class="logo">
                     <span class="logo-icon">⚡</span>
-                    Basalt 2 UI Designer
+                    <span id="logoTitle">Basalt 2 UI Designer</span>
                 </h1>
+                <!-- Framework Tabs -->
+                <div class="framework-tabs">
+                    <button class="tab-btn active" data-framework="basalt">Basalt</button>
+                    <button class="tab-btn" data-framework="pixelui">PixelUI</button>
+                </div>
             </div>
             <div class="header-center">
                 <div class="terminal-size-controls">
@@ -328,6 +333,79 @@
                 <div class="modal-body">
                     <div class="hierarchy-tree" id="hierarchyTree">
                         <!-- Element hierarchy will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Designer Modal -->
+        <div class="modal large" id="chartDesignerModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📊 Chart Designer</h3>
+                    <button class="modal-close" data-modal="chartDesignerModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="chart-designer-container">
+                        <div class="chart-config-panel">
+                            <h4>Chart Configuration</h4>
+                            
+                            <!-- Chart Type Selection -->
+                            <div class="config-group">
+                                <label>Chart Type:</label>
+                                <select id="chartTypeSelect">
+                                    <option value="line">Line Chart</option>
+                                    <option value="bar">Bar Chart</option>
+                                    <option value="pie">Pie Chart</option>
+                                    <option value="area">Area Chart</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Chart Properties -->
+                            <div class="config-group">
+                                <label>Title:</label>
+                                <input type="text" id="chartTitle" placeholder="Chart Title">
+                            </div>
+                            
+                            <div class="config-group">
+                                <label>X-Axis Label:</label>
+                                <input type="text" id="chartXLabel" placeholder="X-Axis Label">
+                            </div>
+                            
+                            <div class="config-group">
+                                <label>Y-Axis Label:</label>
+                                <input type="text" id="chartYLabel" placeholder="Y-Axis Label">
+                            </div>
+                            
+                            <!-- Data Series Management -->
+                            <div class="config-group">
+                                <h5>Data Series</h5>
+                                <div class="series-controls">
+                                    <button class="btn btn-sm" onclick="designer.addChartSeries()">+ Add Series</button>
+                                    <button class="btn btn-sm" onclick="designer.generateSampleData()">📊 Sample Data</button>
+                                </div>
+                                <div id="seriesList" class="series-list">
+                                    <!-- Data series will be added here -->
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="chart-actions">
+                                <button class="btn btn-primary" onclick="designer.applyChartDesign()">Apply Design</button>
+                                <button class="btn btn-secondary" onclick="designer.cancelChartDesign()">Cancel</button>
+                                <button class="btn btn-secondary" onclick="designer.resetChartData()">Reset</button>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-preview-panel">
+                            <h4>Preview</h4>
+                            <div id="chartPreview" class="chart-preview">
+                                <!-- Chart preview will be rendered here -->
+                            </div>
+                            <div class="preview-info">
+                                <small>Preview shows approximate representation</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

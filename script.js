@@ -1,5 +1,5 @@
-// Basalt 2 UI Designer - Main JavaScript
-class BasaltUIDesigner {
+// UI Designer for Basalt 2 and PixelUI - Main JavaScript
+class UIDesigner {
     constructor() {
         this.canvas = document.getElementById('canvas');
         this.terminalPreview = document.getElementById('terminalPreview');
@@ -18,7 +18,9 @@ class BasaltUIDesigner {
         this.cellWidth = 12;
         this.cellHeight = 18;
         
+        this.currentFramework = 'basalt';
         this.basaltElements = this.initializeBasaltElements();
+        this.pixelUIElements = this.initializePixelUIElements();
         this.ccColors = this.initializeCCColors();
         
         this.init();
@@ -26,9 +28,367 @@ class BasaltUIDesigner {
     
     init() {
         this.setupEventListeners();
+        this.setupFrameworkTabs();
         this.updateTerminalSize();
         this.createTerminalGrid();
         this.loadPreset('computer');
+        this.updateElementPalette();
+    }
+    
+    setupFrameworkTabs() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const logoTitle = document.getElementById('logoTitle');
+        
+        tabButtons.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                tabButtons.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Switch framework
+                this.currentFramework = tab.dataset.framework;
+                
+                // Update title
+                if (this.currentFramework === 'basalt') {
+                    logoTitle.textContent = 'Basalt 2 UI Designer';
+                } else {
+                    logoTitle.textContent = 'PixelUI Designer';
+                }
+                
+                // Clear canvas and update element palette
+                this.clearCanvas();
+                this.updateElementPalette();
+            });
+        });
+    }
+    
+    updateElementPalette() {
+        const elementPalette = document.querySelector('.element-palette');
+        if (!elementPalette) return;
+        
+        const elements = this.currentFramework === 'basalt' ? this.basaltElements : this.pixelUIElements;
+        
+        elementPalette.innerHTML = '';
+        
+        // Group elements by category
+        const categories = this.getElementCategories(elements);
+        
+        Object.entries(categories).forEach(([categoryName, categoryElements]) => {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'element-category';
+            categoryDiv.innerHTML = `
+                <h4>${categoryName}</h4>
+                <div class="element-grid">
+                    ${categoryElements.map(element => `
+                        <div class="element-item" data-type="${element.type}">
+                            <div class="element-icon">${this.getElementIcon(element.type)}</div>
+                            <span>${element.type}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            elementPalette.appendChild(categoryDiv);
+        });
+        
+        // Re-attach drag listeners
+        this.attachElementDragListeners();
+    }
+    
+    getElementCategories(elements) {
+        const categories = {};
+        
+        Object.values(elements).forEach(element => {
+            let category = 'Basic';
+            
+            if (this.currentFramework === 'basalt') {
+                if (['Frame', 'Container', 'Flexbox'].includes(element.type)) {
+                    category = 'Containers';
+                } else if (['Label', 'Button', 'Input', 'Checkbox', 'Radio', 'Switch'].includes(element.type)) {
+                    category = 'Basic';
+                } else if (['List', 'Dropdown', 'Menubar', 'Table', 'Tree'].includes(element.type)) {
+                    category = 'Advanced';
+                } else if (['Progressbar', 'Slider', 'Graph', 'Image'].includes(element.type)) {
+                    category = 'Display';
+                }
+            } else {
+                if (['Container'].includes(element.type)) {
+                    category = 'Containers';
+                } else if (['Label', 'Button', 'TextBox', 'CheckBox'].includes(element.type)) {
+                    category = 'Basic';
+                } else if (['ListView', 'ComboBox', 'TabControl'].includes(element.type)) {
+                    category = 'Advanced';
+                } else if (['ProgressBar', 'Slider', 'Chart', 'Canvas', 'ColorPicker'].includes(element.type)) {
+                    category = 'Display';
+                } else if (['RichTextBox', 'CodeEditor'].includes(element.type)) {
+                    category = 'Editors';
+                }
+            }
+            
+            if (!categories[category]) {
+                categories[category] = [];
+            }
+            categories[category].push(element);
+        });
+        
+        return categories;
+    }
+    
+    getElementIcon(type) {
+        const icons = {
+            // Basalt elements
+            'Frame': '🖼️',
+            'Container': '📦',
+            'Flexbox': '📐',
+            'Label': '🏷️',
+            'Button': '🔘',
+            'Input': '📝',
+            'Checkbox': '☑️',
+            'Radio': '🔘',
+            'Switch': '🔀',
+            'List': '📋',
+            'Dropdown': '📜',
+            'Menubar': '📊',
+            'Table': '📊',
+            'Tree': '🌲',
+            'Progressbar': '📊',
+            'Slider': '🎚️',
+            'Graph': '📈',
+            'Image': '🖼️',
+            
+            // PixelUI elements
+            'Widget': '📦',
+            'TextBox': '📝',
+            'CheckBox': '☑️',
+            'ListView': '📋',
+            'ComboBox': '📜',
+            'TabControl': '📑',
+            'ProgressBar': '📊',
+            'Chart': '📈',
+            'Canvas': '🎨',
+            'RichTextBox': '📄',
+            'CodeEditor': '💻',
+            'ColorPicker': '🎨'
+        };
+        
+        return icons[type] || '📦';
+    }
+    
+    initializePixelUIElements() {
+        return {
+            Widget: {
+                type: 'Widget',
+                defaultProps: {
+                    x: 1, y: 1, width: 10, height: 5,
+                    visible: true, enabled: true,
+                    color: 'white', background: 'black'
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled', 'zIndex'],
+                    appearance: ['color', 'background']
+                }
+            },
+            Label: {
+                type: 'Label',
+                defaultProps: {
+                    x: 1, y: 1, width: 8, height: 1,
+                    text: 'Label', color: 'white', background: 'black',
+                    align: 'left', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background'],
+                    text: ['text', 'align']
+                }
+            },
+            Button: {
+                type: 'Button',
+                defaultProps: {
+                    x: 1, y: 1, width: 8, height: 3,
+                    text: 'Button', color: 'white', background: 'gray',
+                    border: true, clickEffect: true, visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background', 'border', 'clickEffect'],
+                    text: ['text']
+                }
+            },
+            TextBox: {
+                type: 'TextBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 12, height: 1,
+                    text: '', placeholder: 'Enter text...',
+                    color: 'white', background: 'black', border: true,
+                    maxLength: 50, password: false, visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background', 'border'],
+                    text: ['text', 'placeholder', 'maxLength', 'password']
+                }
+            },
+            CheckBox: {
+                type: 'CheckBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 8, height: 1,
+                    text: 'CheckBox', checked: false,
+                    color: 'white', background: 'black', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background'],
+                    checkbox: ['text', 'checked']
+                }
+            },
+            Slider: {
+                type: 'Slider',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 1,
+                    value: 0, min: 0, max: 100, step: 1,
+                    trackColor: 'gray', fillColor: 'cyan', knobColor: 'white',
+                    visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['trackColor', 'fillColor', 'knobColor'],
+                    slider: ['value', 'min', 'max', 'step']
+                }
+            },
+            ProgressBar: {
+                type: 'ProgressBar',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 1,
+                    value: 50, max: 100,
+                    color: 'green', background: 'gray', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background'],
+                    progress: ['value', 'max']
+                }
+            },
+            Container: {
+                type: 'Container',
+                defaultProps: {
+                    x: 1, y: 1, width: 15, height: 10,
+                    background: 'black', border: true,
+                    layout: 'absolute', padding: 0, visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['background', 'border'],
+                    container: ['layout', 'padding']
+                }
+            },
+            ListView: {
+                type: 'ListView',
+                defaultProps: {
+                    x: 1, y: 1, width: 15, height: 10,
+                    items: [], selectedIndex: 1,
+                    scrollable: true, visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    list: ['items', 'selectedIndex', 'scrollable']
+                }
+            },
+            ComboBox: {
+                type: 'ComboBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 12, height: 1,
+                    items: [], selectedIndex: 1,
+                    color: 'white', background: 'black', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background'],
+                    list: ['items', 'selectedIndex']
+                }
+            },
+            TabControl: {
+                type: 'TabControl',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 10,
+                    tabs: [], selectedIndex: 1,
+                    color: 'white', background: 'black', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background'],
+                    tabs: ['tabs', 'selectedIndex']
+                }
+            },
+            Chart: {
+                type: 'Chart',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 10,
+                    chartType: 'line', data: [],
+                    color: 'white', background: 'black', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background'],
+                    chart: ['chartType', 'data']
+                }
+            },
+            Canvas: {
+                type: 'Canvas',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 10,
+                    pixels: {}, border: true,
+                    background: 'black', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['background', 'border'],
+                    canvas: ['pixels']
+                }
+            },
+            RichTextBox: {
+                type: 'RichTextBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 30, height: 10,
+                    text: '', showLineNumbers: true, wordWrap: true,
+                    tabSize: 4, readonly: false, allowFormatting: false,
+                    color: 'white', background: 'black', border: true,
+                    visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background', 'border'],
+                    editor: ['text', 'showLineNumbers', 'wordWrap', 'tabSize', 'readonly', 'allowFormatting']
+                }
+            },
+            CodeEditor: {
+                type: 'CodeEditor',
+                defaultProps: {
+                    x: 1, y: 1, width: 30, height: 10,
+                    text: '', language: 'lua', showLineNumbers: true,
+                    autoIndent: true, syntaxHighlight: true, autoComplete: true,
+                    tabSize: 4, color: 'white', background: 'black',
+                    border: true, visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background', 'border'],
+                    editor: ['text', 'language', 'showLineNumbers', 'autoIndent', 'syntaxHighlight', 'autoComplete', 'tabSize']
+                }
+            },
+            ColorPicker: {
+                type: 'ColorPicker',
+                defaultProps: {
+                    x: 1, y: 1, width: 16, height: 8,
+                    selectedColor: 'white', gridColumns: 4, colorSize: 2,
+                    showPreview: true, showName: true,
+                    visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    picker: ['selectedColor', 'gridColumns', 'colorSize', 'showPreview', 'showName']
+                }
+            }
+        };
     }
     
     initializeBasaltElements() {
@@ -389,6 +749,9 @@ class BasaltUIDesigner {
         // Drag and drop
         this.setupDragAndDrop();
         
+        // Element palette drag listeners  
+        this.attachElementDragListeners();
+        
         // Modal controls
         this.setupModals();
         
@@ -401,16 +764,6 @@ class BasaltUIDesigner {
     }
     
     setupDragAndDrop() {
-        // Element palette drag
-        document.querySelectorAll('.element-item').forEach(item => {
-            item.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', item.dataset.type);
-                this.draggedElement = item.dataset.type;
-            });
-            
-            item.setAttribute('draggable', 'true');
-        });
-        
         // Canvas drop
         this.canvas.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -557,16 +910,16 @@ class BasaltUIDesigner {
     }
     
     createElement(type, overrideProps = {}) {
-        const elementDef = this.basaltElements[type];
+        const elementDef = this.getCurrentElements()[type];
         if (!elementDef) return null;
         
         const id = 'element_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        const props = { ...elementDef.defaultProps, ...overrideProps };
+        const properties = { ...elementDef.defaultProps, ...overrideProps };
         
         const element = {
             id,
             type,
-            props,
+            properties,
             children: []
         };
         
@@ -591,7 +944,7 @@ class BasaltUIDesigner {
     }
     
     updateElementDiv(elementDiv, element) {
-        const { x, y, width, height, background, foreground, visible } = element.props;
+        const { x, y, width, height, background, foreground, visible } = element.properties;
         
         elementDiv.style.left = ((x - 1) * this.cellWidth) + 'px';
         elementDiv.style.top = ((y - 1) * this.cellHeight) + 'px';
@@ -610,41 +963,41 @@ class BasaltUIDesigner {
     }
     
     renderElementContent(elementDiv, element) {
-        const { type, props } = element;
+        const { type, properties } = element;
         
         elementDiv.innerHTML = '';
         
         switch (type) {
             case 'Label':
-                elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px; line-height: 1;">${props.text}</span>`;
+                elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px; line-height: 1;">${properties.text}</span>`;
                 break;
                 
             case 'Button':
-                elementDiv.innerHTML = `<div style="border: 1px solid #666; text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: 11px;">${props.text}</div>`;
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: 11px;">${properties.text}</div>`;
                 break;
                 
             case 'Input':
-                const displayText = props.text || props.placeholder;
-                elementDiv.innerHTML = `<input type="text" value="${props.text}" placeholder="${props.placeholder}" style="width: 100%; height: 100%; background: transparent; border: 1px solid #666; color: var(--fg-color, #fff); font-size: 11px; padding: 2px;">`;
+                const displayText = properties.text || properties.placeholder;
+                elementDiv.innerHTML = `<input type="text" value="${properties.text}" placeholder="${properties.placeholder}" style="width: 100%; height: 100%; background: transparent; border: 1px solid #666; color: var(--fg-color, #fff); font-size: 11px; padding: 2px;">`;
                 break;
                 
             case 'Checkbox':
-                const checkmark = props.checked ? props.checkedText : '';
-                elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px;">[${checkmark}] ${props.text}</span>`;
+                const checkmark = properties.checked ? properties.checkedText : '';
+                elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px;">[${checkmark}] ${properties.text}</span>`;
                 break;
                 
             case 'List':
-                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: 10px;">List (${props.items.length} items)</div>`;
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: 10px;">List (${properties.items.length} items)</div>`;
                 break;
                 
             case 'ProgressBar':
-                const progressWidth = (props.progress / 100) * 100;
+                const progressWidth = (properties.progress / 100) * 100;
                 elementDiv.innerHTML = `<div style="border: 1px solid #666; position: relative; height: 100%;"><div style="background: var(--progress-color, lime); width: ${progressWidth}%; height: 100%;"></div></div>`;
                 break;
                 
             case 'Slider':
-                const sliderPos = (props.step / props.max) * 100;
-                if (props.horizontal) {
+                const sliderPos = (properties.step / properties.max) * 100;
+                if (properties.horizontal) {
                     elementDiv.innerHTML = `<div style="border: 1px solid #666; position: relative; height: 100%;"><div style="position: absolute; left: ${sliderPos}%; top: 0; width: 4px; height: 100%; background: var(--slider-color, blue);"></div></div>`;
                 } else {
                     elementDiv.innerHTML = `<div style="border: 1px solid #666; position: relative; width: 100%;"><div style="position: absolute; top: ${100-sliderPos}%; left: 0; width: 100%; height: 4px; background: var(--slider-color, blue);"></div></div>`;
@@ -656,7 +1009,7 @@ class BasaltUIDesigner {
                 break;
                 
             case 'BigFont':
-                elementDiv.innerHTML = `<div style="text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: ${12 + props.fontSize * 2}px; font-weight: bold;">${props.text}</div>`;
+                elementDiv.innerHTML = `<div style="text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: ${12 + properties.fontSize * 2}px; font-weight: bold;">${properties.text}</div>`;
                 break;
                 
             default:
@@ -679,7 +1032,7 @@ class BasaltUIDesigner {
         // Drag to move
         let isDragging = false;
         let dragStart = { x: 0, y: 0 };
-        let elementStart = { x: element.props.x, y: element.props.y };
+        let elementStart = { x: element.properties.x, y: element.properties.y };
         
         elementDiv.addEventListener('mousedown', (e) => {
             if (e.target.classList.contains('resize-handle')) return;
@@ -689,8 +1042,8 @@ class BasaltUIDesigner {
             
             dragStart.x = e.clientX;
             dragStart.y = e.clientY;
-            elementStart.x = element.props.x;
-            elementStart.y = element.props.y;
+            elementStart.x = element.properties.x;
+            elementStart.y = element.properties.y;
             
             e.preventDefault();
         });
@@ -701,8 +1054,8 @@ class BasaltUIDesigner {
             const deltaX = Math.round((e.clientX - dragStart.x) / this.cellWidth);
             const deltaY = Math.round((e.clientY - dragStart.y) / this.cellHeight);
             
-            const newX = Math.max(1, Math.min(this.terminalWidth - element.props.width + 1, elementStart.x + deltaX));
-            const newY = Math.max(1, Math.min(this.terminalHeight - element.props.height + 1, elementStart.y + deltaY));
+            const newX = Math.max(1, Math.min(this.terminalWidth - element.properties.width + 1, elementStart.x + deltaX));
+            const newY = Math.max(1, Math.min(this.terminalHeight - element.properties.height + 1, elementStart.y + deltaY));
             
             this.updateElementProperty(element, 'x', newX);
             this.updateElementProperty(element, 'y', newY);
@@ -733,10 +1086,10 @@ class BasaltUIDesigner {
                 
                 resizeStart.x = e.clientX;
                 resizeStart.y = e.clientY;
-                elementStart.width = this.selectedElement.props.width;
-                elementStart.height = this.selectedElement.props.height;
-                elementStart.x = this.selectedElement.props.x;
-                elementStart.y = this.selectedElement.props.y;
+                elementStart.width = this.selectedElement.properties.width;
+                elementStart.height = this.selectedElement.properties.height;
+                elementStart.x = this.selectedElement.properties.x;
+                elementStart.y = this.selectedElement.properties.y;
             });
             
             document.addEventListener('mousemove', (e) => {
@@ -802,7 +1155,7 @@ class BasaltUIDesigner {
     }
     
     updateElementProperty(element, property, value) {
-        element.props[property] = value;
+        element.properties[property] = value;
         
         const elementDiv = document.querySelector(`[data-element-id="${element.id}"]`);
         if (elementDiv) {
@@ -817,7 +1170,7 @@ class BasaltUIDesigner {
     showProperties(element) {
         this.propertiesContent.innerHTML = '';
         
-        const elementDef = this.basaltElements[element.type];
+        const elementDef = this.getCurrentElements()[element.type];
         if (!elementDef) return;
         
         // Element info
@@ -867,7 +1220,7 @@ class BasaltUIDesigner {
         const fieldDiv = document.createElement('div');
         fieldDiv.className = 'property-field';
         
-        const value = element.props[property];
+        const value = element.properties[property];
         const label = property.charAt(0).toUpperCase() + property.slice(1);
         
         fieldDiv.innerHTML = `<label>${label}</label>`;
@@ -924,6 +1277,36 @@ class BasaltUIDesigner {
                 inputHtml = this.createNodesManager(element, property);
             } else if (property === 'series' && (element.type === 'Graph' || element.type === 'BarChart' || element.type === 'LineChart')) {
                 inputHtml = this.createSeriesManager(element, property);
+            } else if ((property === 'data' && element.type === 'Chart') || (property === 'series' && (element.type === 'Graph' || element.type === 'BarChart' || element.type === 'LineChart'))) {
+                // Format the display value for chart data
+                let displayValue = '';
+                if (Array.isArray(value)) {
+                    displayValue = value.join(', ');
+                } else if (typeof value === 'object' && value !== null) {
+                    // Handle object/series data
+                    if (Object.keys(value).length === 0) {
+                        displayValue = 'No data configured';
+                    } else {
+                        displayValue = Object.entries(value).map(([key, val]) => {
+                            if (Array.isArray(val)) {
+                                return `${key}: [${val.join(', ')}]`;
+                            } else {
+                                return `${key}: ${val}`;
+                            }
+                        }).join('\n');
+                    }
+                } else {
+                    displayValue = String(value || 'No data configured');
+                }
+                
+                inputHtml = `
+                    <div class="chart-designer-controls">
+                        <button class="btn btn-sm" onclick="designer.openChartDesigner('${element.id}', '${property}')" style="background: #3182ce; color: white; margin-bottom: 8px; width: 100%;">
+                            📊 Open Chart Designer
+                        </button>
+                        <textarea rows="3" readonly style="background: #f7fafc; color: #2d3748;" placeholder="Use Chart Designer to configure data">${displayValue}</textarea>
+                    </div>
+                `;
             } else {
                 inputHtml = `<textarea rows="3" onchange="designer.updateElementProperty(designer.selectedElement, '${property}', this.value.split('\\n').filter(x => x.trim()))">${value.join('\n')}</textarea>`;
             }
@@ -942,7 +1325,7 @@ class BasaltUIDesigner {
     }
     
     createItemsManager(element, property) {
-        const items = element.props[property] || [];
+        const items = element.properties[property] || [];
         const managerId = `manager_${element.id}_${property}`;
         
         let html = `<div class="items-manager" id="${managerId}">`;
@@ -966,7 +1349,7 @@ class BasaltUIDesigner {
     }
     
     createNodesManager(element, property) {
-        const nodes = element.props[property] || [];
+        const nodes = element.properties[property] || [];
         const managerId = `manager_${element.id}_${property}`;
         
         let html = `<div class="nodes-manager" id="${managerId}">`;
@@ -1005,7 +1388,7 @@ class BasaltUIDesigner {
     }
     
     createSeriesManager(element, property) {
-        const series = element.props[property] || {};
+        const series = element.properties[property] || {};
         const managerId = `manager_${element.id}_${property}`;
         
         let html = `<div class="series-manager" id="${managerId}">`;
@@ -1069,7 +1452,7 @@ class BasaltUIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
-        const items = element.props[property] || [];
+        const items = element.properties[property] || [];
         items.push(element.type === 'Dropdown' || element.type === 'Menu' ? 
             { text: 'New Item', callback: null } : 'New Item');
         
@@ -1081,7 +1464,7 @@ class BasaltUIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
-        const items = [...(element.props[property] || [])];
+        const items = [...(element.properties[property] || [])];
         items.splice(index, 1);
         
         this.updateElementProperty(element, property, items);
@@ -1092,7 +1475,7 @@ class BasaltUIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
-        const items = [...(element.props[property] || [])];
+        const items = [...(element.properties[property] || [])];
         if (element.type === 'Dropdown' || element.type === 'Menu') {
             items[index] = { ...items[index], text: value };
         } else {
@@ -1107,7 +1490,7 @@ class BasaltUIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
-        const nodes = [...(element.props[property] || [])];
+        const nodes = [...(element.properties[property] || [])];
         nodes.push({ text: 'New Node', children: [] });
         
         this.updateElementProperty(element, property, nodes);
@@ -1118,7 +1501,7 @@ class BasaltUIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
-        const nodes = [...(element.props.nodes || [])];
+        const nodes = [...(element.properties.nodes || [])];
         const indexParts = index.toString().split('_');
         
         if (indexParts.length === 1) {
@@ -1140,7 +1523,7 @@ class BasaltUIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
-        const nodes = [...(element.props.nodes || [])];
+        const nodes = [...(element.properties.nodes || [])];
         const indexParts = parentIndex.toString().split('_');
         
         let current = nodes[parseInt(indexParts[0])];
@@ -1159,7 +1542,7 @@ class BasaltUIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
-        const nodes = [...(element.props.nodes || [])];
+        const nodes = [...(element.properties.nodes || [])];
         const indexParts = index.toString().split('_');
         
         let current = nodes[parseInt(indexParts[0])];
@@ -1185,7 +1568,7 @@ class BasaltUIDesigner {
             return;
         }
         
-        const series = { ...(element.props[property] || {}) };
+        const series = { ...(element.properties[property] || {}) };
         series[seriesName] = {
             symbol: ' ',
             bgCol: 'green',
@@ -1202,7 +1585,7 @@ class BasaltUIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
-        const series = { ...(element.props.series || {}) };
+        const series = { ...(element.properties.series || {}) };
         delete series[seriesName];
         
         this.updateElementProperty(element, 'series', series);
@@ -1213,7 +1596,7 @@ class BasaltUIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
-        const series = { ...(element.props.series || {}) };
+        const series = { ...(element.properties.series || {}) };
         if (!series[seriesName]) return;
         
         series[seriesName][field] = value;
@@ -1300,11 +1683,30 @@ class BasaltUIDesigner {
     }
     
     showExportModal() {
+        // Update modal title based on framework
+        const modalTitle = document.querySelector('#exportModal h3');
+        if (modalTitle) {
+            modalTitle.textContent = `Export ${this.currentFramework === 'basalt' ? 'Basalt' : 'PixelUI'} Code`;
+        }
+        
         this.showModal('exportModal');
         this.updateExportCode();
     }
     
     showImportModal() {
+        // Update modal title and placeholder based on framework
+        const modalTitle = document.querySelector('#importModal h3');
+        const textarea = document.getElementById('importCode');
+        
+        if (modalTitle) {
+            modalTitle.textContent = 'Import Design';
+        }
+        
+        if (textarea) {
+            const framework = this.currentFramework === 'basalt' ? 'Basalt' : 'PixelUI';
+            textarea.placeholder = `Paste your ${framework} code or JSON here...`;
+        }
+        
         this.showModal('importModal');
     }
     
@@ -1360,7 +1762,7 @@ class BasaltUIDesigner {
                 
                 // Import elements
                 jsonData.elements.forEach(elementData => {
-                    const element = this.createElement(elementData.type, elementData.props);
+                    const element = this.createElement(elementData.type, elementData.properties || elementData.props);
                     element.id = elementData.id || element.id;
                 });
                 
@@ -1428,24 +1830,24 @@ class BasaltUIDesigner {
                         
                         // Handle special cases
                         if (propName === 'x' || propName === 'y' || propName === 'width' || propName === 'height') {
-                            element.props[propName] = parsedValue;
+                            element.properties[propName] = parsedValue;
                         } else if (propName === 'background' || propName === 'foreground' || propName.includes('color')) {
                             // Convert colors.colorName to just colorName
                             if (typeof parsedValue === 'string' && parsedValue.startsWith('colors.')) {
                                 parsedValue = parsedValue.replace('colors.', '');
                             }
-                            element.props[propName] = parsedValue;
+                            element.properties[propName] = parsedValue;
                         } else {
-                            element.props[propName] = parsedValue;
+                            element.properties[propName] = parsedValue;
                         }
                     }
                 }
                 
                 // Update element position and properties
-                this.updateElementProperty(element, 'x', element.props.x);
-                this.updateElementProperty(element, 'y', element.props.y);
-                this.updateElementProperty(element, 'width', element.props.width);
-                this.updateElementProperty(element, 'height', element.props.height);
+                this.updateElementProperty(element, 'x', element.properties.x);
+                this.updateElementProperty(element, 'y', element.properties.y);
+                this.updateElementProperty(element, 'width', element.properties.width);
+                this.updateElementProperty(element, 'height', element.properties.height);
             }
             
             this.hideModal(document.getElementById('importModal'));
@@ -1507,6 +1909,677 @@ class BasaltUIDesigner {
         return value;
     }
     
+    clearCanvas() {
+        // Clear all elements
+        this.elements.clear();
+        this.selectedElement = null;
+        
+        // Clear the visual canvas
+        const elementsOnCanvas = this.canvas.querySelectorAll('.canvas-element');
+        elementsOnCanvas.forEach(element => element.remove());
+        
+        // Clear properties panel
+        this.propertiesContent.innerHTML = '<p class="no-selection">Select an element to edit its properties</p>';
+    }
+    
+    attachElementDragListeners() {
+        const elementItems = document.querySelectorAll('.element-item');
+        elementItems.forEach(item => {
+            item.setAttribute('draggable', 'true');
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', item.dataset.type);
+                this.draggedElement = item.dataset.type;
+            });
+        });
+    }
+    
+    getCurrentElements() {
+        return this.currentFramework === 'basalt' ? this.basaltElements : this.pixelUIElements;
+    }
+    
+    generateCode() {
+        if (this.currentFramework === 'basalt') {
+            return this.generateBasaltCode();
+        } else {
+            return this.generatePixelUICode();
+        }
+    }
+
+    // Chart Designer Methods
+    openChartDesigner(elementId, property) {
+        console.log('Opening chart designer for element:', elementId, 'property:', property);
+        
+        this.currentChartElement = this.elements.get(elementId);
+        this.currentChartProperty = property;
+        
+        if (!this.currentChartElement) {
+            console.error('Chart element not found:', elementId);
+            return;
+        }
+        
+        console.log('Chart element found:', this.currentChartElement);
+        
+        // Check if modal exists
+        const modal = document.getElementById('chartDesignerModal');
+        if (!modal) {
+            console.error('Chart designer modal not found in DOM');
+            alert('Chart Designer modal not found. Please refresh the page.');
+            return;
+        }
+        
+        // Show the modal first
+        console.log('Showing chart designer modal');
+        this.showModal('chartDesignerModal');
+        
+        // Initialize chart designer UI after a short delay to ensure modal is visible
+        setTimeout(() => {
+            this.initializeChartDesigner();
+        }, 100);
+    }
+    
+    initializeChartDesigner() {
+        console.log('Initializing chart designer');
+        
+        const element = this.currentChartElement;
+        const property = this.currentChartProperty;
+        
+        console.log('Element:', element, 'Property:', property);
+        
+        // Check if required DOM elements exist
+        const chartTypeSelect = document.getElementById('chartTypeSelect');
+        const chartTitle = document.getElementById('chartTitle');
+        const chartXLabel = document.getElementById('chartXLabel');
+        const chartYLabel = document.getElementById('chartYLabel');
+        
+        if (!chartTypeSelect || !chartTitle || !chartXLabel || !chartYLabel) {
+            console.error('Chart designer DOM elements not found');
+            console.log('chartTypeSelect:', chartTypeSelect);
+            console.log('chartTitle:', chartTitle);
+            console.log('chartXLabel:', chartXLabel);
+            console.log('chartYLabel:', chartYLabel);
+            return;
+        }
+        
+        // Set chart type based on element type and current data
+        if (element.type === 'Chart') {
+            chartTypeSelect.value = element.properties.chartType || 'line';
+        } else if (element.type === 'BarChart') {
+            chartTypeSelect.value = 'bar';
+        } else if (element.type === 'LineChart') {
+            chartTypeSelect.value = 'line';
+        } else {
+            chartTypeSelect.value = 'line';
+        }
+        
+        // Clear previous data
+        chartTitle.value = '';
+        chartXLabel.value = '';
+        chartYLabel.value = '';
+        
+        // Load existing data
+        this.currentChartData = this.getChartData(element, property);
+        this.renderChartSeries();
+        this.updateChartPreview();
+        
+        console.log('Chart designer initialized successfully');
+    }
+    
+    getChartData(element, property) {
+        const data = element.properties[property];
+        
+        if (element.type === 'Chart') {
+            // PixelUI Chart format
+            if (Array.isArray(data)) {
+                // Single series as array
+                return [{
+                    name: 'Data Series',
+                    data: data.map((item, index) => ({
+                        x: index + 1,
+                        y: typeof item === 'object' ? item.value || 0 : item
+                    })),
+                    color: 'blue'
+                }];
+            } else if (typeof data === 'object' && data !== null) {
+                // Multiple series as object (same format as Basalt)
+                return Object.entries(data).map(([name, values]) => ({
+                    name: name,
+                    data: Array.isArray(values) ? values.map((v, i) => ({ x: i + 1, y: v })) : [],
+                    color: 'blue'
+                }));
+            }
+        } else {
+            // Basalt chart format (series object)
+            if (typeof data === 'object' && data !== null) {
+                return Object.entries(data).map(([name, values]) => ({
+                    name: name,
+                    data: Array.isArray(values) ? values.map((v, i) => ({ x: i + 1, y: v })) : [],
+                    color: 'blue'
+                }));
+            }
+        }
+        
+        // Default empty series
+        return [{
+            name: 'Series 1',
+            data: [{ x: 1, y: 10 }, { x: 2, y: 20 }, { x: 3, y: 15 }],
+            color: 'blue'
+        }];
+    }
+    
+    renderChartSeries() {
+        const seriesList = document.getElementById('seriesList');
+        seriesList.innerHTML = '';
+        
+        this.currentChartData.forEach((series, index) => {
+            const seriesDiv = document.createElement('div');
+            seriesDiv.className = 'series-item';
+            seriesDiv.innerHTML = `
+                <div class="series-header">
+                    <span class="series-name">Series ${index + 1}: ${series.name}</span>
+                    <div class="series-controls-inline">
+                        <button class="btn btn-xs" onclick="designer.editSeriesName(${index})" style="background: #38a169; color: white;">✏️</button>
+                        <button class="btn btn-xs" onclick="designer.removeChartSeries(${index})" style="background: #e53e3e; color: white;">🗑️</button>
+                    </div>
+                </div>
+                <div class="series-data" id="seriesData${index}">
+                    ${this.renderSeriesDataPoints(series, index)}
+                </div>
+                <button class="btn btn-xs" onclick="designer.addDataPoint(${index})" style="background: #3182ce; color: white; margin-top: 8px;">+ Add Point</button>
+            `;
+            seriesList.appendChild(seriesDiv);
+        });
+    }
+    
+    renderSeriesDataPoints(series, seriesIndex) {
+        return series.data.map((point, pointIndex) => `
+            <div class="data-points">
+                <input type="number" value="${point.x}" placeholder="X" onchange="designer.updateDataPoint(${seriesIndex}, ${pointIndex}, 'x', this.value)">
+                <input type="number" value="${point.y}" placeholder="Y" onchange="designer.updateDataPoint(${seriesIndex}, ${pointIndex}, 'y', this.value)">
+                <button class="btn btn-xs" onclick="designer.removeDataPoint(${seriesIndex}, ${pointIndex})" style="background: #e53e3e; color: white;">×</button>
+            </div>
+        `).join('');
+    }
+    
+    addChartSeries() {
+        this.currentChartData.push({
+            name: `Series ${this.currentChartData.length + 1}`,
+            data: [{ x: 1, y: 10 }, { x: 2, y: 20 }],
+            color: 'blue'
+        });
+        this.renderChartSeries();
+        this.updateChartPreview();
+    }
+    
+    removeChartSeries(index) {
+        if (this.currentChartData.length > 1) {
+            this.currentChartData.splice(index, 1);
+            this.renderChartSeries();
+            this.updateChartPreview();
+        }
+    }
+    
+    editSeriesName(index) {
+        const newName = prompt('Enter series name:', this.currentChartData[index].name);
+        if (newName) {
+            this.currentChartData[index].name = newName;
+            this.renderChartSeries();
+        }
+    }
+    
+    addDataPoint(seriesIndex) {
+        const series = this.currentChartData[seriesIndex];
+        const lastPoint = series.data[series.data.length - 1] || { x: 0, y: 0 };
+        series.data.push({ x: lastPoint.x + 1, y: 10 });
+        this.renderChartSeries();
+        this.updateChartPreview();
+    }
+    
+    removeDataPoint(seriesIndex, pointIndex) {
+        const series = this.currentChartData[seriesIndex];
+        if (series.data.length > 1) {
+            series.data.splice(pointIndex, 1);
+            this.renderChartSeries();
+            this.updateChartPreview();
+        }
+    }
+    
+    updateDataPoint(seriesIndex, pointIndex, axis, value) {
+        const numValue = parseFloat(value) || 0;
+        this.currentChartData[seriesIndex].data[pointIndex][axis] = numValue;
+        this.updateChartPreview();
+    }
+    
+    generateSampleData() {
+        this.currentChartData = [
+            {
+                name: 'Sales',
+                data: [
+                    { x: 1, y: 120 }, { x: 2, y: 190 }, { x: 3, y: 300 }, 
+                    { x: 4, y: 500 }, { x: 5, y: 200 }, { x: 6, y: 300 }
+                ],
+                color: 'blue'
+            },
+            {
+                name: 'Revenue',
+                data: [
+                    { x: 1, y: 80 }, { x: 2, y: 140 }, { x: 3, y: 200 }, 
+                    { x: 4, y: 300 }, { x: 5, y: 150 }, { x: 6, y: 250 }
+                ],
+                color: 'green'
+            }
+        ];
+        this.renderChartSeries();
+        this.updateChartPreview();
+    }
+    
+    updateChartPreview() {
+        const preview = document.getElementById('chartPreview');
+        const chartType = document.getElementById('chartTypeSelect').value;
+        
+        preview.innerHTML = `
+            <div class="chart-axis chart-axis-x"></div>
+            <div class="chart-axis chart-axis-y"></div>
+            <div class="chart-label" style="bottom: 5px; left: 50%; transform: translateX(-50%);">X-Axis</div>
+            <div class="chart-label" style="left: 5px; top: 50%; transform: rotate(-90deg) translateX(50%);">Y-Axis</div>
+        `;
+        
+        // Find data bounds
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        this.currentChartData.forEach(series => {
+            series.data.forEach(point => {
+                minX = Math.min(minX, point.x);
+                maxX = Math.max(maxX, point.x);
+                minY = Math.min(minY, point.y);
+                maxY = Math.max(maxY, point.y);
+            });
+        });
+        
+        const width = 240; // preview width minus margins
+        const height = 200; // preview height minus margins
+        
+        // Render data based on chart type
+        this.currentChartData.forEach((series, seriesIndex) => {
+            const colors = ['#3182ce', '#38a169', '#e53e3e', '#d69e2e', '#9f7aea'];
+            const color = colors[seriesIndex % colors.length];
+            
+            if (chartType === 'line') {
+                this.renderLineChart(series, color, minX, maxX, minY, maxY, width, height);
+            } else if (chartType === 'bar') {
+                this.renderBarChart(series, color, minX, maxX, minY, maxY, width, height, seriesIndex);
+            }
+        });
+    }
+    
+    renderLineChart(series, color, minX, maxX, minY, maxY, width, height) {
+        const preview = document.getElementById('chartPreview');
+        
+        for (let i = 0; i < series.data.length - 1; i++) {
+            const point1 = series.data[i];
+            const point2 = series.data[i + 1];
+            
+            const x1 = 50 + ((point1.x - minX) / (maxX - minX)) * width;
+            const y1 = 280 - 20 - ((point1.y - minY) / (maxY - minY)) * height;
+            const x2 = 50 + ((point2.x - minX) / (maxX - minX)) * width;
+            const y2 = 280 - 20 - ((point2.y - minY) / (maxY - minY)) * height;
+            
+            const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+            
+            const line = document.createElement('div');
+            line.className = 'chart-preview-line';
+            line.style.left = x1 + 'px';
+            line.style.top = y1 + 'px';
+            line.style.width = length + 'px';
+            line.style.background = color;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.transformOrigin = '0 50%';
+            preview.appendChild(line);
+        }
+        
+        // Add points
+        series.data.forEach(point => {
+            const x = 50 + ((point.x - minX) / (maxX - minX)) * width;
+            const y = 280 - 20 - ((point.y - minY) / (maxY - minY)) * height;
+            
+            const pointDiv = document.createElement('div');
+            pointDiv.className = 'chart-preview-point';
+            pointDiv.style.left = x + 'px';
+            pointDiv.style.top = y + 'px';
+            pointDiv.style.background = color;
+            preview.appendChild(pointDiv);
+        });
+    }
+    
+    renderBarChart(series, color, minX, maxX, minY, maxY, width, height, seriesIndex) {
+        const preview = document.getElementById('chartPreview');
+        const barWidth = Math.max(10, width / (series.data.length * this.currentChartData.length + 1));
+        
+        series.data.forEach((point, pointIndex) => {
+            const x = 50 + ((point.x - minX + 0.1 + seriesIndex * 0.8 / this.currentChartData.length) / (maxX - minX + 1)) * width;
+            const barHeight = ((point.y - minY) / (maxY - minY)) * height;
+            
+            const bar = document.createElement('div');
+            bar.className = 'chart-preview-bar';
+            bar.style.left = x + 'px';
+            bar.style.width = barWidth + 'px';
+            bar.style.height = barHeight + 'px';
+            bar.style.background = color;
+            preview.appendChild(bar);
+        });
+    }
+    
+    applyChartDesign() {
+        const element = this.currentChartElement;
+        const property = this.currentChartProperty;
+        
+        if (element.type === 'Chart') {
+            // PixelUI format - convert to array of {x, y} objects
+            const chartType = document.getElementById('chartTypeSelect').value;
+            element.properties.chartType = chartType;
+            
+            // For PixelUI, use the first series and convert to {x, y} format
+            if (this.currentChartData.length > 0) {
+                const firstSeries = this.currentChartData[0];
+                const pixelUIData = firstSeries.data.map((point, index) => ({
+                    x: index + 1, // Use 1-based indexing for X values
+                    y: point.y
+                }));
+                element.properties[property] = pixelUIData;
+            } else {
+                // Default data if no series
+                element.properties[property] = [
+                    {x: 1, y: 10}, {x: 2, y: 25}, {x: 3, y: 15}, 
+                    {x: 4, y: 30}, {x: 5, y: 20}
+                ];
+            }
+        } else if (element.type === 'BarChart' || element.type === 'LineChart' || element.type === 'Graph') {
+            // Basalt format (series object)
+            const seriesData = {};
+            this.currentChartData.forEach(series => {
+                seriesData[series.name] = series.data.map(point => point.y);
+            });
+            element.properties[property] = seriesData;
+            
+            // Set minValue and maxValue based on data
+            if (this.currentChartData.length > 0) {
+                const allValues = this.currentChartData.flatMap(series => 
+                    series.data.map(point => point.y)
+                );
+                const minVal = Math.min(...allValues);
+                const maxVal = Math.max(...allValues);
+                
+                // Add some padding to the range
+                const padding = (maxVal - minVal) * 0.1;
+                element.properties.minValue = Math.max(0, Math.floor(minVal - padding));
+                element.properties.maxValue = Math.ceil(maxVal + padding);
+            }
+        } else {
+            // Fallback - treat as series format
+            const seriesData = {};
+            this.currentChartData.forEach(series => {
+                seriesData[series.name] = series.data.map(point => point.y);
+            });
+            element.properties[property] = seriesData;
+        }
+        
+        // Update element on canvas
+        const elementDiv = document.querySelector(`[data-element-id="${element.id}"]`);
+        if (elementDiv) {
+            this.updateElementDiv(elementDiv, element);
+        }
+        
+        // Update properties panel
+        if (this.selectedElement && this.selectedElement.id === element.id) {
+            this.updatePropertiesPanel();
+        }
+        
+        this.hideModal('chartDesignerModal');
+    }
+    
+    cancelChartDesign() {
+        this.hideModal('chartDesignerModal');
+    }
+    
+    resetChartData() {
+        this.currentChartData = [{
+            name: 'Series 1',
+            data: [{ x: 1, y: 10 }, { x: 2, y: 20 }, { x: 3, y: 15 }],
+            color: 'blue'
+        }];
+        this.renderChartSeries();
+        this.updateChartPreview();
+    }
+
+    generatePixelUICode() {
+        let code = '-- PixelUI Generated Code\n';
+        code += 'local PixelUI = require("pixelui")\n\n';
+        code += '-- Create main container\n';
+        code += 'local main = PixelUI.container({\n';
+        code += `    width = ${this.terminalWidth},\n`;
+        code += `    height = ${this.terminalHeight}\n`;
+        code += '})\n\n';
+        
+        // Add elements
+        const sortedElements = Array.from(this.elements.values()).sort((a, b) => {
+            const aZ = a.properties.z || 0;
+            const bZ = b.properties.z || 0;
+            return aZ - bZ;
+        });
+        
+        sortedElements.forEach((element, index) => {
+            const varName = `element${index + 1}`;
+            const elementDef = this.pixelUIElements[element.type];
+            
+            code += `-- ${element.type} element\n`;
+            
+            // Convert element type to correct PixelUI function name
+            let pixelUIFunctionName = element.type.toLowerCase();
+            if (element.type === 'CheckBox') {
+                pixelUIFunctionName = 'checkBox';
+            } else if (element.type === 'ListView') {
+                pixelUIFunctionName = 'listView';
+            } else if (element.type === 'TextBox') {
+                pixelUIFunctionName = 'textBox';
+            } else if (element.type === 'ProgressBar') {
+                pixelUIFunctionName = 'progressBar';
+            } else if (element.type === 'ComboBox') {
+                pixelUIFunctionName = 'comboBox';
+            } else if (element.type === 'TabControl') {
+                pixelUIFunctionName = 'tabControl';
+            } else if (element.type === 'RichTextBox') {
+                pixelUIFunctionName = 'richTextBox';
+            } else if (element.type === 'CodeEditor') {
+                pixelUIFunctionName = 'codeEditor';
+            } else if (element.type === 'ColorPicker') {
+                pixelUIFunctionName = 'colorPicker';
+            }
+            
+            code += `local ${varName} = PixelUI.${pixelUIFunctionName}({\n`;
+            
+            // Add properties
+            Object.entries(element.properties).forEach(([key, value]) => {
+                // Always include essential properties like width and height, even if they match defaults
+                const isEssentialProperty = ['width', 'height', 'x', 'y'].includes(key);
+                
+                if (isEssentialProperty || elementDef.defaultProps[key] !== value) {
+                    if (typeof value === 'string' && key.includes('Color') || key === 'background' || key === 'color') {
+                        if (value.startsWith('colors.')) {
+                            code += `    ${key} = ${value},\n`;
+                        } else {
+                            code += `    ${key} = colors.${value},\n`;
+                        }
+                    } else if (typeof value === 'string') {
+                        code += `    ${key} = "${value}",\n`;
+                    } else if (Array.isArray(value)) {
+                        if (value.length === 0) {
+                            code += `    ${key} = {},\n`;
+                        } else {
+                            // Use convertToLuaTable for each array item to handle objects properly
+                            const items = value.map(v => this.convertToLuaTable(v));
+                            code += `    ${key} = {${items.join(', ')}},\n`;
+                        }
+                    } else if (typeof value === 'object' && value !== null) {
+                        // Handle objects (like chart data)
+                        if (key === 'data' && element.type === 'Chart') {
+                            // For chart data, convert to proper Lua table format
+                            const luaTable = this.convertToLuaTable(value);
+                            code += `    ${key} = ${luaTable},\n`;
+                        } else {
+                            // For other objects, convert to Lua table
+                            const luaTable = this.convertToLuaTable(value);
+                            code += `    ${key} = ${luaTable},\n`;
+                        }
+                    } else {
+                        code += `    ${key} = ${value},\n`;
+                    }
+                }
+            });
+            
+            code += '})\n';
+            code += `main:addChild(${varName})\n\n`;
+        });
+        
+        code += '-- Start the UI\n';
+        // code += 'PixelUI.render()\n';
+        code += 'PixelUI.run()';
+        
+        return code;
+    }
+    
+    // Helper method to convert JavaScript objects to Lua table format
+    convertToLuaTable(obj) {
+        if (obj === null || obj === undefined) {
+            return 'nil';
+        }
+        
+        if (typeof obj === 'string') {
+            return `"${obj}"`;
+        }
+        
+        if (typeof obj === 'number' || typeof obj === 'boolean') {
+            return String(obj);
+        }
+        
+        if (Array.isArray(obj)) {
+            if (obj.length === 0) {
+                return '{}';
+            }
+            const items = obj.map(item => this.convertToLuaTable(item));
+            return `{${items.join(', ')}}`;
+        }
+        
+        if (typeof obj === 'object') {
+            const pairs = [];
+            for (const [key, value] of Object.entries(obj)) {
+                const luaKey = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key) ? key : `["${key}"]`;
+                const luaValue = this.convertToLuaTable(value);
+                pairs.push(`${luaKey} = ${luaValue}`);
+            }
+            return `{${pairs.join(', ')}}`;
+        }
+        
+        return 'nil';
+    }
+    
+    generateBasaltCode() {
+        // Use existing Basalt code generation method
+        let code = '-- Basalt 2 Generated Code\n';
+        code += 'local basalt = require("basalt")\n\n';
+        code += '-- Create main frame\n';
+        code += 'local main = basalt.createFrame()\n';
+        code += `    :setSize(${this.terminalWidth}, ${this.terminalHeight})\n\n`;
+        
+        // Add elements with existing logic
+        const sortedElements = Array.from(this.elements.values()).sort((a, b) => {
+            const aZ = a.properties.z || 0;
+            const bZ = b.properties.z || 0;
+            return aZ - bZ;
+        });
+        
+        sortedElements.forEach((element, index) => {
+            const varName = `element${index + 1}`;
+            const elementDef = this.getCurrentElements()[element.type];
+            
+            code += `-- ${element.type} element\n`;
+            code += `local ${varName} = main:add${element.type}()\n`;
+            
+            // Add properties using existing basalt property methods
+            let positionSet = false;
+            let sizeSet = false;
+            
+            Object.entries(element.properties).forEach(([key, value]) => {
+                if (elementDef.defaultProps[key] !== value) {
+                    // Special handling for position and size
+                    if (key === 'x' || key === 'y') {
+                        if (!positionSet) {
+                            const x = element.properties.x || 1;
+                            const y = element.properties.y || 1;
+                            code += `    :setPosition(${x}, ${y})\n`;
+                            positionSet = true;
+                        }
+                        return; // Skip individual x/y processing
+                    } else if (key === 'width' || key === 'height') {
+                        if (!sizeSet) {
+                            const width = element.properties.width || 10;
+                            const height = element.properties.height || 5;
+                            code += `    :setSize(${width}, ${height})\n`;
+                            sizeSet = true;
+                        }
+                        return; // Skip individual width/height processing
+                    }
+                    
+                    const propertyMethod = this.getBasaltPropertyMethod(key);
+                    if (propertyMethod) {
+                        if (typeof value === 'string' && (key.includes('Color') || key === 'background' || key === 'foreground')) {
+                            if (value.startsWith('colors.')) {
+                                code += `    :${propertyMethod}(${value})\n`;
+                            } else {
+                                code += `    :${propertyMethod}(colors.${value})\n`;
+                            }
+                        } else if (typeof value === 'string') {
+                            code += `    :${propertyMethod}("${value}")\n`;
+                        } else if (Array.isArray(value)) {
+                            if (value.length === 0) {
+                                code += `    :${propertyMethod}({})\n`;
+                            } else {
+                                // Use convertToLuaTable for each array item to handle objects properly
+                                const items = value.map(v => this.convertToLuaTable(v));
+                                code += `    :${propertyMethod}({${items.join(', ')}})\n`;
+                            }
+                        } else if (typeof value === 'object' && value !== null) {
+                            // Handle objects (like chart data)
+                            const luaTable = this.convertToLuaTable(value);
+                            code += `    :${propertyMethod}(${luaTable})\n`;
+                        } else {
+                            code += `    :${propertyMethod}(${value})\n`;
+                        }
+                    }
+                }
+            });
+            
+            code += '\n';
+        });
+        
+        code += '-- Start the UI\n';
+        code += 'basalt.autoUpdate()';
+        
+        return code;
+    }
+    
+    getBasaltPropertyMethod(key) {
+        const methodMap = {
+            text: 'setText',
+            background: 'setBackground',
+            foreground: 'setForeground',
+            visible: 'setVisible',
+            zIndex: 'setZIndex',
+            series: 'setSeries',
+            minValue: 'setMinValue',
+            maxValue: 'setMaxValue'
+        };
+        return methodMap[key] || `set${key.charAt(0).toUpperCase() + key.slice(1)}`;
+    }
+    
     showPreviewModal() {
         this.showModal('previewModal');
         this.generatePreview();
@@ -1549,89 +2622,7 @@ class BasaltUIDesigner {
     }
     
     generateLuaCode() {
-        let code = `local basalt = require("basalt")\n\n`;
-        code += `-- Create main frame\n`;
-        code += `local main = basalt.createFrame()\n`;
-        code += `main:setSize(${this.terminalWidth}, ${this.terminalHeight})\n\n`;
-        
-        const sortedElements = Array.from(this.elements.values()).sort((a, b) => a.id.localeCompare(b.id));
-        
-        sortedElements.forEach((element, index) => {
-            const varName = `${element.type.toLowerCase()}${index + 1}`;
-            code += `-- Create ${element.type}\n`;
-            code += `local ${varName} = main:add${element.type}()\n`;
-            
-            // Set properties
-            Object.entries(element.props).forEach(([prop, value]) => {
-                if (prop === 'visible' && value === true) return; // Skip default visible
-                if (value === null || value === undefined) return; // Skip null/undefined values
-                
-                const methodName = `set${prop.charAt(0).toUpperCase() + prop.slice(1)}`;
-                
-                if (typeof value === 'string' && value !== '') {
-                    if (prop.includes('Color') || prop === 'background' || prop === 'foreground' || 
-                        prop === 'focusedBackground' || prop === 'focusedForeground' || 
-                        prop === 'selectedBackground' || prop === 'selectedForeground' ||
-                        prop === 'headerColor' || prop === 'selectedColor' || prop === 'gridColor' ||
-                        prop === 'nodeColor' || prop === 'barColor' || prop === 'sliderColor' ||
-                        prop === 'progressColor' || prop === 'separatorColor') {
-                        code += `${varName}:${methodName}(colors.${value})\n`;
-                    } else {
-                        code += `${varName}:${methodName}("${value}")\n`;
-                    }
-                } else if (typeof value === 'boolean') {
-                    code += `${varName}:${methodName}(${value})\n`;
-                } else if (Array.isArray(value) && value.length > 0) {
-                    // Handle different array types
-                    if (prop === 'items') {
-                        // For dropdown/menu items - handle both strings and objects
-                        const itemsStr = value.map(item => {
-                            if (typeof item === 'string') {
-                                return `"${item}"`;
-                            } else if (typeof item === 'object' && item.text) {
-                                return `{text = "${item.text}"}`;
-                            }
-                            return `"${item}"`;
-                        }).join(', ');
-                        code += `${varName}:${methodName}({${itemsStr}})\n`;
-                    } else if (prop === 'nodes') {
-                        // For tree nodes - handle nested structure
-                        const formatNode = (node) => {
-                            if (typeof node === 'string') return `"${node}"`;
-                            let nodeStr = `{text = "${node.text || 'Node'}"`;
-                            if (node.children && node.children.length > 0) {
-                                const childrenStr = node.children.map(formatNode).join(', ');
-                                nodeStr += `, children = {${childrenStr}}`;
-                            }
-                            nodeStr += '}';
-                            return nodeStr;
-                        };
-                        const nodesStr = value.map(formatNode).join(', ');
-                        code += `${varName}:${methodName}({${nodesStr}})\n`;
-                    } else {
-                        // For simple arrays like List items
-                        code += `${varName}:${methodName}({${value.map(v => `"${v}"`).join(', ')}})\n`;
-                    }
-                } else if (typeof value === 'object' && value !== null) {
-                    // Handle series for charts
-                    if (prop === 'series') {
-                        const seriesEntries = Object.entries(value).map(([name, data]) => {
-                            return `["${name}"] = {symbol = "${data.symbol || ' '}", bgCol = colors.${data.bgCol || 'green'}, fgCol = colors.${data.fgCol || 'green'}, pointCount = ${data.pointCount || 10}}`;
-                        }).join(', ');
-                        code += `${varName}:${methodName}({${seriesEntries}})\n`;
-                    }
-                } else if (typeof value === 'number') {
-                    code += `${varName}:${methodName}(${value})\n`;
-                }
-            });
-            
-            code += `\n`;
-        });
-        
-        code += `-- Start the UI\n`;
-        code += `basalt.run()`;
-        
-        return code;
+        return this.generateCode();
     }
     
     generateJSONCode() {
@@ -1643,7 +2634,7 @@ class BasaltUIDesigner {
             elements: Array.from(this.elements.values()).map(element => ({
                 id: element.id,
                 type: element.type,
-                props: element.props,
+                properties: element.properties,
                 children: element.children
             }))
         };
@@ -1659,7 +2650,7 @@ class BasaltUIDesigner {
         Array.from(this.elements.values()).forEach(element => {
             xml += `    <${element.type}`;
             
-            Object.entries(element.props).forEach(([prop, value]) => {
+            Object.entries(element.properties).forEach(([prop, value]) => {
                 if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
                     xml += ` ${prop}="${value}"`;
                 }
@@ -1698,7 +2689,8 @@ class BasaltUIDesigner {
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = `basalt-ui.${extension}`;
+        const baseFilename = this.currentFramework === 'basalt' ? 'basalt-ui' : 'pixelui-ui';
+        a.download = `${baseFilename}.${extension}`;
         a.click();
         
         URL.revokeObjectURL(url);
@@ -1721,23 +2713,23 @@ class BasaltUIDesigner {
         
         // Render elements in preview
         Array.from(this.elements.values()).forEach(element => {
-            if (!element.props.visible) return;
+            if (!element.properties.visible) return;
             
             const previewEl = document.createElement('div');
             previewEl.style.position = 'absolute';
-            previewEl.style.left = ((element.props.x - 1) * 8) + 'px';
-            previewEl.style.top = ((element.props.y - 1) * 12) + 'px';
-            previewEl.style.width = (element.props.width * 8) + 'px';
-            previewEl.style.height = (element.props.height * 12) + 'px';
-            previewEl.className = `cc-color-${element.props.background}`;
+            previewEl.style.left = ((element.properties.x - 1) * 8) + 'px';
+            previewEl.style.top = ((element.properties.y - 1) * 12) + 'px';
+            previewEl.style.width = (element.properties.width * 8) + 'px';
+            previewEl.style.height = (element.properties.height * 12) + 'px';
+            previewEl.className = `cc-color-${element.properties.background}`;
             
             // Simple content rendering
             switch (element.type) {
                 case 'Label':
-                    previewEl.textContent = element.props.text;
+                    previewEl.textContent = element.properties.text;
                     break;
                 case 'Button':
-                    previewEl.textContent = element.props.text;
+                    previewEl.textContent = element.properties.text;
                     previewEl.style.border = '1px solid #666';
                     previewEl.style.textAlign = 'center';
                     break;
@@ -1770,7 +2762,7 @@ class BasaltUIDesigner {
                 item.classList.add('selected');
             }
             
-            item.innerHTML = `📄 ${element.type} (${element.props.x}, ${element.props.y})`;
+            item.innerHTML = `📄 ${element.type} (${element.properties.x}, ${element.properties.y})`;
             
             item.addEventListener('click', () => {
                 this.selectElement(element);
@@ -1785,7 +2777,7 @@ class BasaltUIDesigner {
 // Initialize the designer when the page loads
 let designer;
 document.addEventListener('DOMContentLoaded', () => {
-    designer = new BasaltUIDesigner();
+    designer = new UIDesigner();
 });
 
 // Keyboard shortcuts
