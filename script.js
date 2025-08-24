@@ -33,8 +33,8 @@ class BasaltUIDesigner {
     
     initializeBasaltElements() {
         return {
-            BaseFrame: {
-                type: 'BaseFrame',
+            Frame: {
+                type: 'Frame',
                 defaultProps: {
                     x: 1, y: 1, width: 10, height: 5,
                     background: 'black', foreground: 'white',
@@ -372,6 +372,10 @@ class BasaltUIDesigner {
         
         document.getElementById('importBtn').addEventListener('click', () => {
             this.showImportModal();
+        });
+        
+        document.getElementById('performImport').addEventListener('click', () => {
+            this.performImport();
         });
         
         document.getElementById('previewBtn').addEventListener('click', () => {
@@ -1302,6 +1306,205 @@ class BasaltUIDesigner {
     
     showImportModal() {
         this.showModal('importModal');
+    }
+    
+    performImport() {
+        const fileInput = document.getElementById('importFile');
+        const codeInput = document.getElementById('importCode');
+        
+        // Check if a file was selected
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    this.importData(e.target.result, file.name);
+                } catch (error) {
+                    alert('Error reading file: ' + error.message);
+                }
+            };
+            
+            reader.readAsText(file);
+        } else if (codeInput.value.trim()) {
+            // Use pasted code
+            try {
+                this.importData(codeInput.value.trim(), 'pasted_code');
+            } catch (error) {
+                alert('Error importing code: ' + error.message);
+            }
+        } else {
+            alert('Please select a file or paste code to import.');
+            return;
+        }
+    }
+    
+    importData(data, filename) {
+        try {
+            // Try to parse as JSON first
+            const jsonData = JSON.parse(data);
+            
+            if (jsonData.elements && jsonData.terminal) {
+                // Valid Basalt UI Designer format
+                this.clearCanvas();
+                
+                // Set terminal size
+                this.terminalWidth = jsonData.terminal.width;
+                this.terminalHeight = jsonData.terminal.height;
+                
+                // Update UI
+                document.getElementById('terminalWidth').value = this.terminalWidth;
+                document.getElementById('terminalHeight').value = this.terminalHeight;
+                document.getElementById('terminalPreset').value = 'custom';
+                this.updateTerminalSize();
+                
+                // Import elements
+                jsonData.elements.forEach(elementData => {
+                    const element = this.createElement(elementData.type, elementData.props);
+                    element.id = elementData.id || element.id;
+                });
+                
+                this.hideModal(document.getElementById('importModal'));
+                
+                // Clear the form
+                document.getElementById('importFile').value = '';
+                document.getElementById('importCode').value = '';
+                
+                alert('Design imported successfully!');
+            } else {
+                throw new Error('Invalid JSON format. Expected Basalt UI Designer format.');
+            }
+        } catch (jsonError) {
+            // If JSON parsing fails, try to parse as Lua code
+            if (data.includes('basalt') && data.includes('createFrame')) {
+                this.importLuaCode(data);
+            } else {
+                throw new Error('Invalid format. Please provide JSON data or Lua code.');
+            }
+        }
+    }
+    
+    importLuaCode(luaCode) {
+        try {
+            this.clearCanvas();
+            
+            // Extract terminal size from main:setSize(width, height)
+            const sizeMatch = luaCode.match(/main:setSize\((\d+),\s*(\d+)\)/);
+            if (sizeMatch) {
+                this.terminalWidth = parseInt(sizeMatch[1]);
+                this.terminalHeight = parseInt(sizeMatch[2]);
+                
+                // Update UI
+                document.getElementById('terminalWidth').value = this.terminalWidth;
+                document.getElementById('terminalHeight').value = this.terminalHeight;
+                document.getElementById('terminalPreset').value = 'custom';
+                this.updateTerminalSize();
+            }
+            
+            // Extract elements - pattern: local varName = main:addElementType()
+            const elementMatches = luaCode.matchAll(/local\s+(\w+)\s*=\s*main:add(\w+)\(\)/g);
+            const elements = {};
+            
+            for (const match of elementMatches) {
+                const varName = match[1];
+                const elementType = match[2];
+                
+                // Create element
+                const element = this.createElement(elementType);
+                elements[varName] = element;
+                
+                // Extract properties for this element
+                const propRegex = new RegExp(`${varName}:(\\w+)\\(([^)]+)\\)`, 'g');
+                let propMatch;
+                
+                while ((propMatch = propRegex.exec(luaCode)) !== null) {
+                    const methodName = propMatch[1];
+                    const value = propMatch[2].trim();
+                    
+                    // Convert method name to property name (setX -> x, setWidth -> width)
+                    if (methodName.startsWith('set')) {
+                        const propName = methodName.slice(3).toLowerCase();
+                        let parsedValue = this.parseLuaValue(value);
+                        
+                        // Handle special cases
+                        if (propName === 'x' || propName === 'y' || propName === 'width' || propName === 'height') {
+                            element.props[propName] = parsedValue;
+                        } else if (propName === 'background' || propName === 'foreground' || propName.includes('color')) {
+                            // Convert colors.colorName to just colorName
+                            if (typeof parsedValue === 'string' && parsedValue.startsWith('colors.')) {
+                                parsedValue = parsedValue.replace('colors.', '');
+                            }
+                            element.props[propName] = parsedValue;
+                        } else {
+                            element.props[propName] = parsedValue;
+                        }
+                    }
+                }
+                
+                // Update element position and properties
+                this.updateElementProperty(element, 'x', element.props.x);
+                this.updateElementProperty(element, 'y', element.props.y);
+                this.updateElementProperty(element, 'width', element.props.width);
+                this.updateElementProperty(element, 'height', element.props.height);
+            }
+            
+            this.hideModal(document.getElementById('importModal'));
+            
+            // Clear the form
+            document.getElementById('importFile').value = '';
+            document.getElementById('importCode').value = '';
+            
+            alert('Lua code imported successfully!');
+            
+        } catch (error) {
+            throw new Error('Error parsing Lua code: ' + error.message);
+        }
+    }
+    
+    parseLuaValue(value) {
+        // Remove quotes and parse the value
+        value = value.trim();
+        
+        // Handle strings (remove quotes)
+        if ((value.startsWith('"') && value.endsWith('"')) || 
+            (value.startsWith("'") && value.endsWith("'"))) {
+            return value.slice(1, -1);
+        }
+        
+        // Handle numbers
+        if (/^\d+(\.\d+)?$/.test(value)) {
+            return parseFloat(value);
+        }
+        
+        // Handle booleans
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        
+        // Handle arrays/tables like {"item1", "item2"}
+        if (value.startsWith('{') && value.endsWith('}')) {
+            try {
+                // Simple array parsing for strings
+                const items = value.slice(1, -1).split(',').map(item => {
+                    item = item.trim();
+                    if ((item.startsWith('"') && item.endsWith('"')) || 
+                        (item.startsWith("'") && item.endsWith("'"))) {
+                        return item.slice(1, -1);
+                    }
+                    return item;
+                }).filter(item => item.length > 0);
+                return items;
+            } catch (e) {
+                return value; // Return as string if parsing fails
+            }
+        }
+        
+        // Handle colors.colorName
+        if (value.startsWith('colors.')) {
+            return value;
+        }
+        
+        // Return as string by default
+        return value;
     }
     
     showPreviewModal() {
