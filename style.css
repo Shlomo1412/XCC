@@ -1246,3 +1246,97 @@ body {
     background: #cbd5e0;
     transform: translateY(-1px);
 }
+
+/* === Dark Neon Theme Overrides (aligned with landing page) === */
+/* These overrides restyle the designer to match the index.html aesthetic without touching functionality */
+:root {
+    --xcc-accent: #00ff88;
+    --xcc-accent-alt: #ff6b00;
+    --xcc-bg0: #050505;
+    --xcc-bg1: #0a0a0a;
+    --xcc-bg2: #111111;
+    --xcc-bg3: #181818;
+    --xcc-border: #262626;
+    --xcc-text: #ffffff;
+    --xcc-text-dim: #b0b0b0;
+    --xcc-text-fade: #707070;
+    --xcc-gradient: linear-gradient(135deg,var(--xcc-accent),var(--xcc-accent-alt));
+    --xcc-shadow-strong: 0 8px 30px -6px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.03);
+    --xcc-shadow-soft: 0 4px 18px -4px rgba(0,255,136,0.35);
+}
+
+body {
+    background: radial-gradient(circle at 20% 15%, rgba(0,255,136,0.08), transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(255,107,0,0.06), transparent 55%),
+                linear-gradient(160deg,#0a0a0a,#050505 60%);
+    color: var(--xcc-text);
+    overflow: hidden;
+}
+
+.app { background: rgba(10,10,10,0.55); backdrop-filter: blur(22px) saturate(140%); }
+
+.header { background: rgba(15,15,15,0.85); border-bottom: 1px solid var(--xcc-border); box-shadow: var(--xcc-shadow-soft); }
+.header-left .logo { background: var(--xcc-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+.framework-tabs { background: rgba(255,255,255,0.04); border:1px solid var(--xcc-border); border-radius:14px; }
+.tab-btn { background: rgba(255,255,255,0.05); color: var(--xcc-text-dim); font-size:13px; letter-spacing:.3px; }
+.tab-btn:hover { background: rgba(255,255,255,0.09); color: var(--xcc-text); }
+.tab-btn.active { background: var(--xcc-gradient); color:#0d0d0d; box-shadow:0 6px 18px -4px rgba(0,255,136,0.5); }
+
+.terminal-size-controls { background: rgba(255,255,255,0.04); border:1px solid var(--xcc-border); border-radius:18px; }
+.terminal-size-controls label { color: var(--xcc-text-fade); letter-spacing:.5px; font-size:12px; text-transform:uppercase; }
+.preset-select, .size-inputs input { background:#141414; border:1px solid var(--xcc-border); color:var(--xcc-text); font-size:13px; }
+.preset-select:focus, .size-inputs input:focus { outline:none; border-color:var(--xcc-accent); box-shadow:0 0 0 2px rgba(0,255,136,0.35); }
+.size-inputs span { color: var(--xcc-text-fade); }
+
+.btn { border-radius:12px; font-size:13px; font-weight:600; letter-spacing:.25px; position:relative; overflow:hidden; }
+.btn-primary { background: var(--xcc-gradient); color:#0d0d0d; box-shadow:0 8px 26px -6px rgba(0,255,136,0.45); }
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 34px -8px rgba(0,255,136,0.6); }
+.btn-secondary { background:rgba(255,255,255,0.06); color:var(--xcc-text-dim); border:1px solid var(--xcc-border); }
+.btn-secondary:hover { background:rgba(255,255,255,0.12); color:var(--xcc-text); }
+
+.sidebar { background:rgba(20,20,20,0.85); border-right:1px solid var(--xcc-border); backdrop-filter: blur(18px) saturate(150%); }
+.sidebar-section h3 { color:var(--xcc-text); letter-spacing:1px; font-size:14px; opacity:.9; }
+.element-category h4 { color:var(--xcc-text-fade); }
+.element-item { background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); border:1px solid var(--xcc-border); }
+.element-item:hover { background:linear-gradient(135deg, rgba(0,255,136,0.18), rgba(0,0,0,0.15)); border-color:var(--xcc-accent); box-shadow:0 8px 26px -6px rgba(0,255,136,0.45); transform:translateY(-4px) scale(1.02); }
+.element-item span { color:var(--xcc-text-dim); }
+
+.canvas-area { background: radial-gradient(circle at 70% 30%, rgba(0,255,136,0.06), transparent 60%), linear-gradient(120deg,#0c0c0c,#0a0a0a); }
+.canvas-header { background: rgba(15,15,15,0.75); border-bottom:1px solid var(--xcc-border); backdrop-filter: blur(14px) saturate(160%); }
+.canvas-title h3 { color:var(--xcc-text); }
+.canvas-info { color:var(--xcc-text-fade); font-size:11px; text-transform:uppercase; letter-spacing:.75px; }
+.canvas-container { padding:34px; }
+.canvas { background:#0f1113; border:1px solid #222; border-radius:22px; box-shadow: var(--xcc-shadow-strong); }
+.terminal-preview { background:#181c20; border-radius:12px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), inset 0 0 18px -4px rgba(0,255,136,0.12); }
+
+.drop-zone { background:rgba(0,0,0,0.55); backdrop-filter:blur(6px) saturate(150%); }
+.drop-zone.drag-over { background:rgba(0,255,136,0.15); box-shadow: inset 0 0 0 2px var(--xcc-accent); }
+.drop-zone-content { color:var(--xcc-text-dim); }
+.drop-zone-icon { background:var(--xcc-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:54px; opacity:.35; }
+
+.ui-element:hover { border-color: var(--xcc-accent); }
+.ui-element.selected { border-color: var(--xcc-accent); box-shadow:0 0 0 2px rgba(0,255,136,0.25),0 0 14px -2px rgba(0,255,136,0.5); }
+
+.properties-panel { background: rgba(20,20,20,0.85); border-left:1px solid var(--xcc-border); }
+.properties-header { border-bottom:1px solid var(--xcc-border); }
+.properties-header h3 { color:var(--xcc-text); }
+.properties-content { color: var(--xcc-text-dim); }
+.property-group h4 { color:var(--xcc-text-fade); border-bottom:1px solid var(--xcc-border); }
+.property-field label { color:var(--xcc-text-fade); }
+.property-field input, .property-field select, .property-field textarea { background:#141414; border:1px solid var(--xcc-border); color:var(--xcc-text); }
+.property-field input:focus, .property-field select:focus, .property-field textarea:focus { border-color:var(--xcc-accent); box-shadow:0 0 0 2px rgba(0,255,136,0.3); }
+
+.modal-content { background:#141414; border:1px solid var(--xcc-border); }
+.modal-header { border-bottom:1px solid var(--xcc-border); }
+.modal-header h3 { color:var(--xcc-text); }
+.modal-body { color:var(--xcc-text-dim); }
+.code-output { background:#181c20; }
+.code-output code { color: var(--xcc-accent); }
+
+/* Scrollbars (dark) */
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
+
+/* End Dark Neon Theme Overrides */
