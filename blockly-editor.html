@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockly Script Editor - XCC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Blockly Scripts -->
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://unpkg.com/blockly/blocks.min.js"></script>
+    <script src="https://unpkg.com/blockly/lua.min.js"></script>
+    <script src="https://unpkg.com/blockly/msg/en.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --primary-dark: #00cc6a;
+            --secondary-color: #ff6b00;
+            --bg-dark: #0a0a0a;
+            --bg-darker: #050505;
+            --bg-card: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+            --border-color: #333333;
+            --accent: #00ff88;
+            --gradient-1: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --gradient-2: linear-gradient(135deg, #00ff88, #0088ff);
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow: hidden;
+        }
+
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .script-info h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .script-meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Blockly Workspace */
+        .blockly-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #blocklyDiv {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Code Preview Panel */
+        .code-panel {
+            width: 400px;
+            background: var(--bg-darker);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-panel-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-panel-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .code-content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .code-preview {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            color: var(--text-primary);
+            overflow-y: auto;
+            min-height: 200px;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-section {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .toolbar-separator {
+            width: 1px;
+            height: 20px;
+            background: var(--border-color);
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--bg-darker);
+            border-top: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .code-panel {
+                width: 100%;
+                height: 300px;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .toolbar {
+                padding: 0.5rem;
+            }
+
+            .code-panel {
+                height: 200px;
+            }
+        }
+
+        /* Custom Blockly styling */
+        .blocklyToolboxDiv {
+            background: var(--bg-card) !important;
+            border-right: 1px solid var(--border-color) !important;
+        }
+
+        .blocklyTreeLabel {
+            color: var(--text-primary) !important;
+        }
+
+        .blocklyTreeSelected > .blocklyTreeLabel {
+            background: var(--accent) !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="script-info">
+                    <h1 id="scriptName">Loading Script...</h1>
+                    <div class="script-meta">
+                        <span id="scriptType">Custom Script</span> • 
+                        <span id="projectName">Project Name</span> • 
+                        <span>ComputerCraft Blockly Editor</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="saveBtn">💾 Save</button>
+                <button class="btn btn-secondary" id="runBtn">▶️ Test Run</button>
+                <button class="btn btn-primary" id="backBtn">← Back to App</button>
+            </div>
+        </header>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <button class="btn btn-secondary btn-small" id="undoBtn">↶ Undo</button>
+                <button class="btn btn-secondary btn-small" id="redoBtn">↷ Redo</button>
+            </div>
+            <div class="toolbar-separator"></div>
+            <div class="toolbar-section">
+                <button class="btn btn-secondary btn-small" id="zoomInBtn">🔍+ Zoom In</button>
+                <button class="btn btn-secondary btn-small" id="zoomOutBtn">🔍- Zoom Out</button>
+                <button class="btn btn-secondary btn-small" id="centerBtn">🎯 Center</button>
+            </div>
+            <div class="toolbar-separator"></div>
+            <div class="toolbar-section">
+                <button class="btn btn-secondary btn-small" id="clearBtn">🗑️ Clear All</button>
+                <button class="btn btn-secondary btn-small" id="helpBtn">❓ Help</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Blockly Workspace -->
+            <div class="blockly-container">
+                <div id="blocklyDiv"></div>
+            </div>
+
+            <!-- Code Preview Panel -->
+            <div class="code-panel">
+                <div class="code-panel-header">
+                    <span class="code-panel-title">🔍 Generated Lua Code</span>
+                    <button class="btn btn-secondary btn-small" id="copyCodeBtn">📋 Copy</button>
+                </div>
+                <div class="code-content">
+                    <div class="code-preview" id="codePreview">
+-- Generated Lua code will appear here
+-- Start by dragging blocks from the toolbox
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span id="blockCount">0 blocks</span>
+            <span id="lastSaved">Unsaved changes</span>
+        </div>
+    </div>
+
+    <script>
+        class BlocklyEditor {
+            constructor() {
+                this.workspace = null;
+                this.currentProject = null;
+                this.currentScript = null;
+                this.autoSaveInterval = null;
+                this.init();
+            }
+
+            init() {
+                this.loadProjectAndScript();
+                this.initBlockly();
+                this.bindEvents();
+                this.startAutoSave();
+            }
+
+            loadProjectAndScript() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const projectId = urlParams.get('project');
+                const scriptId = urlParams.get('script');
+                
+                if (!projectId || !scriptId) {
+                    window.location.href = 'projects.html';
+                    return;
+                }
+
+                const projects = JSON.parse(localStorage.getItem('xcc_projects') || '[]');
+                this.currentProject = projects.find(p => p.id === projectId);
+
+                if (!this.currentProject) {
+                    alert('Project not found!');
+                    window.location.href = 'projects.html';
+                    return;
+                }
+
+                this.currentScript = this.currentProject.scripts.find(s => s.id === scriptId);
+
+                if (!this.currentScript) {
+                    alert('Script not found!');
+                    window.location.href = `app-maker.html?project=${projectId}`;
+                    return;
+                }
+
+                this.updateScriptInfo();
+            }
+
+            updateScriptInfo() {
+                document.getElementById('scriptName').textContent = this.currentScript.name;
+                document.getElementById('scriptType').textContent = this.currentScript.type === 'initial' ? 'Initial Script' : 'Custom Script';
+                document.getElementById('projectName').textContent = this.currentProject.name;
+            }
+
+            initBlockly() {
+                // Define ComputerCraft specific blocks
+                this.defineComputerCraftBlocks();
+
+                // Create toolbox
+                const toolbox = this.createToolbox();
+
+                // Initialize Blockly workspace
+                this.workspace = Blockly.inject('blocklyDiv', {
+                    toolbox: toolbox,
+                    theme: this.createDarkTheme(),
+                    grid: {
+                        spacing: 20,
+                        length: 3,
+                        colour: '#333',
+                        snap: true
+                    },
+                    zoom: {
+                        controls: true,
+                        wheel: true,
+                        startScale: 1.0,
+                        maxScale: 3,
+                        minScale: 0.3,
+                        scaleSpeed: 1.2
+                    },
+                    trashcan: true,
+                    sounds: false
+                });
+
+                // Load existing XML if available
+                if (this.currentScript.blocklyXml) {
+                    try {
+                        const xml = Blockly.Xml.textToDom(this.currentScript.blocklyXml);
+                        Blockly.Xml.domToWorkspace(xml, this.workspace);
+                    } catch (e) {
+                        console.warn('Failed to load saved blocks:', e);
+                    }
+                }
+
+                // Update code preview on changes
+                this.workspace.addChangeListener(() => {
+                    this.updateCodePreview();
+                    this.updateBlockCount();
+                });
+
+                this.updateCodePreview();
+            }
+
+            defineComputerCraftBlocks() {
+                // Terminal API blocks
+                Blockly.Blocks['cc_print'] = {
+                    init: function() {
+                        this.appendValueInput("TEXT")
+                            .setCheck("String")
+                            .appendField("print");
+                        this.setPreviousStatement(true, null);
+                        this.setNextStatement(true, null);
+                        this.setColour("#4CAF50");
+                        this.setTooltip("Print text to the terminal");
+                    }
+                };
+
+                Blockly.Lua['cc_print'] = function(block) {
+                    const text = Blockly.Lua.valueToCode(block, 'TEXT', Blockly.Lua.ORDER_ATOMIC) || '""';
+                    return `print(${text})\n`;
+                };
+
+                // Terminal control blocks
+                Blockly.Blocks['cc_term_clear'] = {
+                    init: function() {
+                        this.appendDummyInput()
+                            .appendField("clear screen");
+                        this.setPreviousStatement(true, null);
+                        this.setNextStatement(true, null);
+                        this.setColour("#2196F3");
+                        this.setTooltip("Clear the terminal screen");
+                    }
+                };
+
+                Blockly.Lua['cc_term_clear'] = function(block) {
+                    return 'term.clear()\n';
+                };
+
+                Blockly.Blocks['cc_term_setCursor'] = {
+                    init: function() {
+                        this.appendValueInput("X")
+                            .setCheck("Number")
+                            .appendField("set cursor to X:");
+                        this.appendValueInput("Y")
+                            .setCheck("Number")
+                            .appendField("Y:");
+                        this.setPreviousStatement(true, null);
+                        this.setNextStatement(true, null);
+                        this.setColour("#2196F3");
+                        this.setTooltip("Set cursor position");
+                    }
+                };
+
+                Blockly.Lua['cc_term_setCursor'] = function(block) {
+                    const x = Blockly.Lua.valueToCode(block, 'X', Blockly.Lua.ORDER_ATOMIC) || '1';
+                    const y = Blockly.Lua.valueToCode(block, 'Y', Blockly.Lua.ORDER_ATOMIC) || '1';
+                    return `term.setCursorPos(${x}, ${y})\n`;
+                };
+
+                // OS API blocks
+                Blockly.Blocks['cc_os_sleep'] = {
+                    init: function() {
+                        this.appendValueInput("TIME")
+                            .setCheck("Number")
+                            .appendField("sleep for");
+                        this.appendDummyInput()
+                            .appendField("seconds");
+                        this.setPreviousStatement(true, null);
+                        this.setNextStatement(true, null);
+                        this.setColour("#FF9800");
+                        this.setTooltip("Pause execution for specified seconds");
+                    }
+                };
+
+                Blockly.Lua['cc_os_sleep'] = function(block) {
+                    const time = Blockly.Lua.valueToCode(block, 'TIME', Blockly.Lua.ORDER_ATOMIC) || '1';
+                    return `os.sleep(${time})\n`;
+                };
+
+                // Event handling
+                Blockly.Blocks['cc_os_pullEvent'] = {
+                    init: function() {
+                        this.appendDummyInput()
+                            .appendField("wait for event")
+                            .appendField(new Blockly.FieldDropdown([
+                                ["any", ""],
+                                ["key", "key"],
+                                ["char", "char"],
+                                ["mouse_click", "mouse_click"],
+                                ["timer", "timer"]
+                            ]), "EVENT_TYPE");
+                        this.setOutput(true, "Array");
+                        this.setColour("#9C27B0");
+                        this.setTooltip("Wait for and return an event");
+                    }
+                };
+
+                Blockly.Lua['cc_os_pullEvent'] = function(block) {
+                    const eventType = block.getFieldValue('EVENT_TYPE');
+                    if (eventType) {
+                        return [`os.pullEvent("${eventType}")`, Blockly.Lua.ORDER_FUNCTION_CALL];
+                    } else {
+                        return ['os.pullEvent()', Blockly.Lua.ORDER_FUNCTION_CALL];
+                    }
+                };
+
+                // File system blocks
+                Blockly.Blocks['cc_fs_exists'] = {
+                    init: function() {
+                        this.appendValueInput("PATH")
+                            .setCheck("String")
+                            .appendField("file exists");
+                        this.setOutput(true, "Boolean");
+                        this.setColour("#795548");
+                        this.setTooltip("Check if file or directory exists");
+                    }
+                };
+
+                Blockly.Lua['cc_fs_exists'] = function(block) {
+                    const path = Blockly.Lua.valueToCode(block, 'PATH', Blockly.Lua.ORDER_ATOMIC) || '""';
+                    return [`fs.exists(${path})`, Blockly.Lua.ORDER_FUNCTION_CALL];
+                };
+
+                // UI Framework blocks (if applicable)
+                if (this.currentProject.framework) {
+                    this.defineUIFrameworkBlocks();
+                }
+
+                // Project-specific blocks
+                this.defineProjectBlocks();
+            }
+
+            defineUIFrameworkBlocks() {
+                const framework = this.currentProject.framework;
+                
+                if (framework === 'pixelui' || framework === 'basalt' || framework === 'primeui') {
+                    // Show frame block
+                    Blockly.Blocks['cc_show_frame'] = {
+                        init: function() {
+                            this.appendDummyInput()
+                                .appendField("show frame")
+                                .appendField(new Blockly.FieldDropdown(
+                                    editor.getFrameOptions()
+                                ), "FRAME");
+                            this.appendValueInput("X")
+                                .setCheck("Number")
+                                .appendField("at X:");
+                            this.appendValueInput("Y")
+                                .setCheck("Number")
+                                .appendField("Y:");
+                            this.setPreviousStatement(true, null);
+                            this.setNextStatement(true, null);
+                            this.setColour("#E91E63");
+                            this.setTooltip("Display a UI frame at specified position");
+                        }
+                    };
+
+                    Blockly.Lua['cc_show_frame'] = function(block) {
+                        const frame = block.getFieldValue('FRAME');
+                        const x = Blockly.Lua.valueToCode(block, 'X', Blockly.Lua.ORDER_ATOMIC) || '1';
+                        const y = Blockly.Lua.valueToCode(block, 'Y', Blockly.Lua.ORDER_ATOMIC) || '1';
+                        return `-- Show frame: ${frame} at position ${x}, ${y}\n`;
+                    };
+                }
+            }
+
+            defineProjectBlocks() {
+                // Call other scripts
+                Blockly.Blocks['cc_call_script'] = {
+                    init: function() {
+                        this.appendDummyInput()
+                            .appendField("call script")
+                            .appendField(new Blockly.FieldDropdown(
+                                editor.getScriptOptions()
+                            ), "SCRIPT");
+                        this.appendValueInput("PARAMS")
+                            .setCheck("Array")
+                            .appendField("with parameters");
+                        this.setOutput(true, null);
+                        this.setColour("#607D8B");
+                        this.setTooltip("Call another script in this project");
+                    }
+                };
+
+                Blockly.Lua['cc_call_script'] = function(block) {
+                    const script = block.getFieldValue('SCRIPT');
+                    const params = Blockly.Lua.valueToCode(block, 'PARAMS', Blockly.Lua.ORDER_ATOMIC) || '{}';
+                    return [`${script}(${params})`, Blockly.Lua.ORDER_FUNCTION_CALL];
+                };
+            }
+
+            getFrameOptions() {
+                const frames = this.currentProject.frames || [];
+                if (frames.length === 0) {
+                    return [['No frames available', 'none']];
+                }
+                return frames.map(frame => [frame.name, frame.id]);
+            }
+
+            getScriptOptions() {
+                const scripts = this.currentProject.scripts.filter(s => s.id !== this.currentScript.id);
+                if (scripts.length === 0) {
+                    return [['No other scripts', 'none']];
+                }
+                return scripts.map(script => [script.name, script.id]);
+            }
+
+            createToolbox() {
+                return {
+                    kind: 'categoryToolbox',
+                    contents: [
+                        {
+                            kind: 'category',
+                            name: 'Logic',
+                            colour: '#5b80a5',
+                            contents: [
+                                { kind: 'block', type: 'controls_if' },
+                                { kind: 'block', type: 'logic_compare' },
+                                { kind: 'block', type: 'logic_operation' },
+                                { kind: 'block', type: 'logic_negate' },
+                                { kind: 'block', type: 'logic_boolean' },
+                                { kind: 'block', type: 'logic_null' }
+                            ]
+                        },
+                        {
+                            kind: 'category',
+                            name: 'Loops',
+                            colour: '#5ba55b',
+                            contents: [
+                                { kind: 'block', type: 'controls_repeat_ext' },
+                                { kind: 'block', type: 'controls_whileUntil' },
+                                { kind: 'block', type: 'controls_for' },
+                                { kind: 'block', type: 'controls_forEach' },
+                                { kind: 'block', type: 'controls_flow_statements' }
+                            ]
+                        },
+                        {
+                            kind: 'category',
+                            name: 'Math',
+                            colour: '#5b67a5',
+                            contents: [
+                                { kind: 'block', type: 'math_number' },
+                                { kind: 'block', type: 'math_arithmetic' },
+                                { kind: 'block', type: 'math_single' },
+                                { kind: 'block', type: 'math_trig' },
+                                { kind: 'block', type: 'math_constant' },
+                                { kind: 'block', type: 'math_random_int' },
+                                { kind: 'block', type: 'math_random_float' }
+                            ]
+                        },
+                        {
+                            kind: 'category',
+                            name: 'Text',
+                            colour: '#5ba58c',
+                            contents: [
+                                { kind: 'block', type: 'text' },
+                                { kind: 'block', type: 'text_join' },
+                                { kind: 'block', type: 'text_append' },
+                                { kind: 'block', type: 'text_length' },
+                                { kind: 'block', type: 'text_isEmpty' },
+                                { kind: 'block', type: 'text_indexOf' },
+                                { kind: 'block', type: 'text_charAt' }
+                            ]
+                        },
+                        {
+                            kind: 'category',
+                            name: 'Lists',
+                            colour: '#745ba5',
+                            contents: [
+                                { kind: 'block', type: 'lists_create_with' },
+                                { kind: 'block', type: 'lists_repeat' },
+                                { kind: 'block', type: 'lists_length' },
+                                { kind: 'block', type: 'lists_isEmpty' },
+                                { kind: 'block', type: 'lists_indexOf' },
+                                { kind: 'block', type: 'lists_getIndex' },
+                                { kind: 'block', type: 'lists_setIndex' }
+                            ]
+                        },
+                        {
+                            kind: 'category',
+                            name: 'Variables',
+                            colour: '#a55b80',
+                            custom: 'VARIABLE'
+                        },
+                        {
+                            kind: 'category',
+                            name: 'Functions',
+                            colour: '#995ba5',
+                            custom: 'PROCEDURE'
+                        },
+                        {
+                            kind: 'sep'
+                        },
+                        {
+                            kind: 'category',
+                            name: 'Terminal',
+                            colour: '#4CAF50',
+                            contents: [
+                                { kind: 'block', type: 'cc_print' },
+                                { kind: 'block', type: 'cc_term_clear' },
+                                { kind: 'block', type: 'cc_term_setCursor' }
+                            ]
+                        },
+                        {
+                            kind: 'category',
+                            name: 'System',
+                            colour: '#FF9800',
+                            contents: [
+                                { kind: 'block', type: 'cc_os_sleep' },
+                                { kind: 'block', type: 'cc_os_pullEvent' }
+                            ]
+                        },
+                        {
+                            kind: 'category',
+                            name: 'File System',
+                            colour: '#795548',
+                            contents: [
+                                { kind: 'block', type: 'cc_fs_exists' }
+                            ]
+                        },
+                        ...(this.currentProject.appType === 'ui-app' ? [{
+                            kind: 'category',
+                            name: 'UI Frames',
+                            colour: '#E91E63',
+                            contents: [
+                                { kind: 'block', type: 'cc_show_frame' }
+                            ]
+                        }] : []),
+                        {
+                            kind: 'category',
+                            name: 'Project Scripts',
+                            colour: '#607D8B',
+                            contents: [
+                                { kind: 'block', type: 'cc_call_script' }
+                            ]
+                        }
+                    ]
+                };
+            }
+
+            createDarkTheme() {
+                return Blockly.Theme.defineTheme('dark', {
+                    'base': Blockly.Themes.Classic,
+                    'categoryStyles': {
+                        'logic_category': {
+                            'colour': '#5b80a5'
+                        },
+                        'loop_category': {
+                            'colour': '#5ba55b'
+                        },
+                        'math_category': {
+                            'colour': '#5b67a5'
+                        },
+                        'text_category': {
+                            'colour': '#5ba58c'
+                        },
+                        'list_category': {
+                            'colour': '#745ba5'
+                        },
+                        'variable_category': {
+                            'colour': '#a55b80'
+                        },
+                        'procedure_category': {
+                            'colour': '#995ba5'
+                        }
+                    },
+                    'blockStyles': {},
+                    'componentStyles': {
+                        'workspaceBackgroundColour': '#0a0a0a',
+                        'toolboxBackgroundColour': '#111111',
+                        'toolboxForegroundColour': '#fff',
+                        'flyoutBackgroundColour': '#252526',
+                        'flyoutForegroundColour': '#ccc',
+                        'flyoutOpacity': 1,
+                        'scrollbarColour': '#797979',
+                        'insertionMarkerColour': '#fff',
+                        'insertionMarkerOpacity': 0.3,
+                        'markerColour': '#fff',
+                        'cursorColour': '#d0d0d0',
+                        'selectedGlowColour': '#00ff88',
+                        'selectedGlowOpacity': 0.7,
+                        'replacementGlowColour': '#fff',
+                        'replacementGlowOpacity': 0.3
+                    }
+                });
+            }
+
+            bindEvents() {
+                // Header actions
+                document.getElementById('saveBtn').addEventListener('click', () => this.saveScript());
+                document.getElementById('runBtn').addEventListener('click', () => this.testRun());
+                document.getElementById('backBtn').addEventListener('click', () => this.goBack());
+
+                // Toolbar actions
+                document.getElementById('undoBtn').addEventListener('click', () => this.workspace.undo(false));
+                document.getElementById('redoBtn').addEventListener('click', () => this.workspace.undo(true));
+                document.getElementById('zoomInBtn').addEventListener('click', () => this.workspace.zoomCenter(1));
+                document.getElementById('zoomOutBtn').addEventListener('click', () => this.workspace.zoomCenter(-1));
+                document.getElementById('centerBtn').addEventListener('click', () => this.workspace.scrollCenter());
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearWorkspace());
+                document.getElementById('helpBtn').addEventListener('click', () => this.showHelp());
+
+                // Code panel actions
+                document.getElementById('copyCodeBtn').addEventListener('click', () => this.copyCode());
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch (e.key) {
+                            case 's':
+                                e.preventDefault();
+                                this.saveScript();
+                                break;
+                            case 'z':
+                                e.preventDefault();
+                                this.workspace.undo(e.shiftKey);
+                                break;
+                        }
+                    }
+                });
+            }
+
+            updateCodePreview() {
+                try {
+                    const code = Blockly.Lua.workspaceToCode(this.workspace);
+                    const codePreview = document.getElementById('codePreview');
+                    
+                    if (code.trim() === '') {
+                        codePreview.textContent = '-- Generated Lua code will appear here\n-- Start by dragging blocks from the toolbox';
+                    } else {
+                        codePreview.textContent = code;
+                    }
+                } catch (error) {
+                    console.error('Error generating code:', error);
+                    document.getElementById('codePreview').textContent = '-- Error generating code\n-- Please check your blocks for errors';
+                }
+            }
+
+            updateBlockCount() {
+                const blocks = this.workspace.getAllBlocks();
+                document.getElementById('blockCount').textContent = `${blocks.length} blocks`;
+            }
+
+            saveScript() {
+                try {
+                    // Save Blockly XML
+                    const xml = Blockly.Xml.workspaceToDom(this.workspace);
+                    this.currentScript.blocklyXml = Blockly.Xml.domToText(xml);
+                    
+                    // Save generated Lua code
+                    this.currentScript.luaCode = Blockly.Lua.workspaceToCode(this.workspace);
+                    this.currentScript.lastModified = new Date().toISOString();
+
+                    // Update project in localStorage
+                    const projects = JSON.parse(localStorage.getItem('xcc_projects') || '[]');
+                    const projectIndex = projects.findIndex(p => p.id === this.currentProject.id);
+                    
+                    if (projectIndex !== -1) {
+                        const scriptIndex = projects[projectIndex].scripts.findIndex(s => s.id === this.currentScript.id);
+                        if (scriptIndex !== -1) {
+                            projects[projectIndex].scripts[scriptIndex] = this.currentScript;
+                            projects[projectIndex].lastModified = new Date().toISOString();
+                        }
+                    }
+                    
+                    localStorage.setItem('xcc_projects', JSON.stringify(projects));
+                    document.getElementById('lastSaved').textContent = `Saved at ${new Date().toLocaleTimeString()}`;
+                    
+                } catch (error) {
+                    console.error('Error saving script:', error);
+                    alert('Failed to save script. Please try again.');
+                }
+            }
+
+            testRun() {
+                const code = Blockly.Lua.workspaceToCode(this.workspace);
+                if (code.trim() === '') {
+                    alert('No code to run. Add some blocks first!');
+                    return;
+                }
+
+                // Create a modal to show the generated code
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.8); display: flex; align-items: center;
+                    justify-content: center; z-index: 1000;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color);
+                                border-radius: 16px; padding: 2rem; max-width: 600px; width: 90%;">
+                        <h3 style="margin-bottom: 1rem;">Generated Lua Code</h3>
+                        <pre style="background: var(--bg-darker); padding: 1rem; border-radius: 8px;
+                                   white-space: pre-wrap; font-family: 'JetBrains Mono', monospace;
+                                   max-height: 400px; overflow-y: auto;">${code}</pre>
+                        <div style="margin-top: 1rem; text-align: right;">
+                            <button onclick="navigator.clipboard.writeText(\`${code.replace(/`/g, '\\`')}\`); this.textContent='Copied!'"
+                                    style="margin-right: 1rem; padding: 0.5rem 1rem; background: var(--gradient-1);
+                                           border: none; border-radius: 8px; color: white; cursor: pointer;">
+                                Copy Code
+                            </button>
+                            <button onclick="this.closest('div').remove()"
+                                    style="padding: 0.5rem 1rem; background: var(--border-color);
+                                           border: none; border-radius: 8px; color: white; cursor: pointer;">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.remove();
+                });
+            }
+
+            clearWorkspace() {
+                if (confirm('Are you sure you want to clear all blocks? This cannot be undone.')) {
+                    this.workspace.clear();
+                }
+            }
+
+            showHelp() {
+                window.open('https://developers.google.com/blockly/guides/overview', '_blank');
+            }
+
+            copyCode() {
+                const code = Blockly.Lua.workspaceToCode(this.workspace);
+                navigator.clipboard.writeText(code).then(() => {
+                    const btn = document.getElementById('copyCodeBtn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copied!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                });
+            }
+
+            goBack() {
+                window.location.href = `app-maker.html?project=${this.currentProject.id}`;
+            }
+
+            startAutoSave() {
+                this.autoSaveInterval = setInterval(() => {
+                    this.saveScript();
+                }, 30000); // Auto-save every 30 seconds
+            }
+
+            destroy() {
+                if (this.autoSaveInterval) {
+                    clearInterval(this.autoSaveInterval);
+                }
+                if (this.workspace) {
+                    this.workspace.dispose();
+                }
+            }
+        }
+
+        // Initialize editor
+        const editor = new BlocklyEditor();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            editor.destroy();
+        });
+    </script>
+</body>
+</html>

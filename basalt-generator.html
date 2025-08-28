@@ -25,6 +25,7 @@
                 <div class="framework-tabs">
                     <button class="tab-btn active" data-framework="basalt">Basalt</button>
                     <button class="tab-btn" data-framework="pixelui">PixelUI</button>
+                    <button class="tab-btn" data-framework="primeui">PrimeUI</button>
                 </div>
             </div>
             <div class="header-center">
@@ -46,6 +47,12 @@
                 </div>
             </div>
             <div class="header-right">
+                <button class="btn btn-secondary" onclick="window.location.href='projects.html'">
+                    📁 Projects
+                </button>
+                <button class="btn btn-secondary" onclick="designer.quickSave()">
+                    💾 Save
+                </button>
                 <button class="btn btn-secondary" id="exportBtn">
                     📥 Export Code
                 </button>
@@ -265,6 +272,10 @@
                             <input type="radio" id="exportXML" name="exportType" value="xml">
                             <label for="exportXML">XML (Basalt Plugin)</label>
                         </div>
+                        <div class="export-option">
+                            <input type="radio" id="exportXCC" name="exportType" value="xcc">
+                            <label for="exportXCC">XCC Format</label>
+                        </div>
                     </div>
                     <div class="code-output">
                         <pre><code id="exportCode" class="language-lua"></code></pre>
@@ -288,7 +299,7 @@
                     <div class="import-options">
                         <div class="import-method">
                             <label for="importFile">Import from File:</label>
-                            <input type="file" id="importFile" accept=".json,.lua,.xml">
+                            <input type="file" id="importFile" accept=".json,.lua,.xml,.xcc">
                         </div>
                         <div class="import-method">
                             <label for="importCode">Or paste code:</label>
@@ -404,6 +415,93 @@
                             </div>
                             <div class="preview-info">
                                 <small>Preview shows approximate representation</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TreeView Designer Modal -->
+        <div class="modal large" id="treeDesignerModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🌳 TreeView Designer</h3>
+                    <button class="modal-close" data-modal="treeDesignerModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="tree-designer-container">
+                        <div class="tree-config-panel">
+                            <h4>Tree Configuration</h4>
+                            
+                            <!-- Tree Settings -->
+                            <div class="config-group">
+                                <h5>Tree Settings</h5>
+                                <div class="form-group">
+                                    <label for="treeShowLines">Show Lines</label>
+                                    <input type="checkbox" id="treeShowLines" checked>
+                                </div>
+                                <div class="form-group">
+                                    <label for="treeShowRoot">Show Root</label>
+                                    <input type="checkbox" id="treeShowRoot" checked>
+                                </div>
+                                <div class="form-group">
+                                    <label for="treeExpandable">Expandable</label>
+                                    <input type="checkbox" id="treeExpandable" checked>
+                                </div>
+                                <div class="form-group">
+                                    <label for="treeSelectable">Selectable</label>
+                                    <input type="checkbox" id="treeSelectable" checked>
+                                </div>
+                            </div>
+                            
+                            <!-- Tree Structure Management -->
+                            <div class="config-group">
+                                <h5>Tree Structure</h5>
+                                <div class="tree-controls">
+                                    <button class="btn btn-sm" onclick="designer.addTreeNode()">+ Add Node</button>
+                                    <button class="btn btn-sm" onclick="designer.generateSampleTree()">🌳 Sample Tree</button>
+                                </div>
+                                
+                                <!-- Current Node Editor -->
+                                <div class="node-editor" id="nodeEditor" style="display: none;">
+                                    <h6>Edit Node</h6>
+                                    <div class="form-group">
+                                        <label for="nodeText">Text</label>
+                                        <input type="text" id="nodeText" placeholder="Node text">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="nodeExpanded">Expanded</label>
+                                        <input type="checkbox" id="nodeExpanded">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="nodeIcon">Icon (optional)</label>
+                                        <input type="text" id="nodeIcon" placeholder="📁">
+                                    </div>
+                                    <div class="node-actions">
+                                        <button class="btn btn-xs" onclick="designer.addChildNode()">+ Add Child</button>
+                                        <button class="btn btn-xs" onclick="designer.deleteTreeNode()">🗑️ Delete</button>
+                                        <button class="btn btn-xs" onclick="designer.moveNodeUp()">⬆️ Up</button>
+                                        <button class="btn btn-xs" onclick="designer.moveNodeDown()">⬇️ Down</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="tree-actions">
+                                <button class="btn btn-primary" onclick="designer.applyTreeDesign()">Apply Design</button>
+                                <button class="btn btn-secondary" onclick="designer.cancelTreeDesign()">Cancel</button>
+                                <button class="btn btn-secondary" onclick="designer.resetTreeData()">Reset</button>
+                            </div>
+                        </div>
+                        
+                        <div class="tree-preview-panel">
+                            <h4>Tree Structure</h4>
+                            <div id="treePreview" class="tree-preview">
+                                <!-- Tree preview will be rendered here -->
+                            </div>
+                            <div class="preview-info">
+                                <small>Click nodes to edit, drag to reorder</small>
                             </div>
                         </div>
                     </div>

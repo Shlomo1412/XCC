@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XCC - ComputerCraft Tools Collection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --primary-dark: #00cc6a;
+            --secondary-color: #ff6b00;
+            --bg-dark: #0a0a0a;
+            --bg-darker: #050505;
+            --bg-card: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+            --border-color: #333333;
+            --accent: #00ff88;
+            --gradient-1: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --gradient-2: linear-gradient(135deg, #00ff88, #0088ff);
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--bg-dark);
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(0, 136, 255, 0.05) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--gradient-1);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: var(--shadow);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--gradient-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .feature-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .feature-link:hover {
+            color: var(--primary-dark);
+        }
+
+        /* Code Preview */
+        .code-preview {
+            background: var(--bg-darker);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .code-preview code {
+            color: var(--accent);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-darker);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav {
+                padding: 0 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .hero {
+                padding: 1rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .features {
+                padding: 4rem 1rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .feature-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Terminal simulation */
+        .terminal {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid var(--border-color);
+        }
+
+        .terminal-header {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27ca3f; }
+
+        .terminal-content {
+            color: var(--accent);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .terminal-prompt {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">XCC</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#tools">Tools</a></li>
+                <li><a href="#docs">Docs</a></li>
+                <li><a href="#github">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1 class="hero-title">XCC</h1>
+            <p class="hero-subtitle">ComputerCraft Tools Collection</p>
+            <p class="hero-description">
+                A comprehensive suite of web-based tools designed specifically for CC: Tweaked development. 
+                Build beautiful UIs, design complex interfaces, and enhance your ComputerCraft programming experience 
+                with our powerful visual designers and utilities.
+            </p>
+            <div class="cta-buttons">
+                <a href="create-project.html" class="btn btn-primary">
+                    🚀 Create New Project
+                </a>
+                <a href="projects.html" class="btn btn-secondary">
+                    📁 My Projects
+                </a>
+                <a href="#tools" class="btn btn-secondary">
+                    🔧 Explore Tools
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="tools">
+        <h2 class="section-title">Powerful Tools</h2>
+        <p class="section-subtitle">Everything you need for ComputerCraft development</p>
+        
+        <div class="features-grid">
+            <div class="feature-card fade-in-up">
+                <div class="feature-icon">🚀</div>
+                <h3 class="feature-title">Complete App Maker</h3>
+                <p class="feature-description">
+                    Build full ComputerCraft applications with our comprehensive app maker. Create UI frames, 
+                    write scripts with visual Blockly editor, and generate complete, ready-to-run applications.
+                </p>
+                <a href="create-project.html" class="feature-link">
+                    Start Building →
+                </a>
+            </div>
+
+            <div class="feature-card fade-in-up">
+                <div class="feature-icon">🎨</div>
+                <h3 class="feature-title">Visual UI Designer</h3>
+                <p class="feature-description">
+                    Create stunning user interfaces with our drag-and-drop designer. Supports Basalt, PixelUI, and PrimeUI frameworks 
+                    with real-time preview and automatic code generation.
+                </p>
+                <a href="basalt-generator.html" class="feature-link">
+                    Launch Designer →
+                </a>
+                
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-content">
+                        <div class="terminal-prompt">$ </div>
+                        <div>-- Generated by XCC Designer</div>
+                        <div style="color: #ff6b00;">local</div> <span style="color: white;">button = </span><span style="color: #00ff88;">PrimeUI.button</span><span style="color: white;">(win, 2, 3, "Click Me!")</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-card fade-in-up">
+                <div class="feature-icon">🧩</div>
+                <h3 class="feature-title">Visual Script Editor</h3>
+                <p class="feature-description">
+                    Code without typing! Use our powerful Blockly-based visual editor with ComputerCraft API blocks. 
+                    Perfect for beginners and experts alike.
+                </p>
+                <a href="create-project.html" class="feature-link">
+                    Try Blockly Editor →
+                </a>
+            </div>
+
+            <div class="feature-card fade-in-up">
+                <div class="feature-icon">🖼️</div>
+                <h3 class="feature-title">Multi-Framework Support</h3>
+                <p class="feature-description">
+                    Work with Basalt, PixelUI, and PrimeUI frameworks seamlessly. Switch between frameworks 
+                    and generate optimized code for each with built-in component libraries.
+                </p>
+                <a href="basalt-generator.html" class="feature-link">
+                    Try Frameworks →
+                </a>
+            </div>
+
+            <div class="feature-card fade-in-up">
+                <div class="feature-icon">📦</div>
+                <h3 class="feature-title">Built-in Bundler</h3>
+                <p class="feature-description">
+                    No external dependencies needed! Our built-in bundler includes all necessary components 
+                    directly in your generated code, making deployment simple and reliable.
+                </p>
+                <a href="basalt-generator.html" class="feature-link">
+                    Learn More →
+                </a>
+            </div>
+
+            <div class="feature-card fade-in-up">
+                <div class="feature-icon">🌳</div>
+                <h3 class="feature-title">TreeView & Charts</h3>
+                <p class="feature-description">
+                    Advanced components including TreeView for hierarchical data and Chart widgets 
+                    for data visualization in your ComputerCraft applications.
+                </p>
+                <a href="basalt-generator.html" class="feature-link">
+                    Explore Components →
+                </a>
+            </div>
+
+            <div class="feature-card fade-in-up">
+                <div class="feature-icon">💾</div>
+                <h3 class="feature-title">Project Management</h3>
+                <p class="feature-description">
+                    Save and load your designs with our custom .xcc format. Import/export functionality 
+                    makes it easy to manage complex projects and share designs.
+                </p>
+                <a href="basalt-generator.html" class="feature-link">
+                    Manage Projects →
+                </a>
+            </div>
+
+            <div class="feature-card fade-in-up">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title">Real-time Preview</h3>
+                <p class="feature-description">
+                    See your changes instantly with live preview. What you see is what you get - 
+                    design with confidence knowing your UI will look exactly as intended.
+                </p>
+                <a href="basalt-generator.html" class="feature-link">
+                    See Preview →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Example -->
+    <section class="features">
+        <h2 class="section-title">Generated Code Example</h2>
+        <p class="section-subtitle">Clean, optimized Lua code ready for ComputerCraft</p>
+        
+        <div class="code-preview">
+<code>-- PrimeUI Generated Code with Built-in Components
+-- Generated by XCC Designer - No external dependencies needed!
+
+local win = term.current()
+
+-- Create a beautiful button
+PrimeUI.button(win, 5, 5, "Hello ComputerCraft!", function()
+    print("Button clicked!")
+end, colors.white, colors.green)
+
+-- Add a text label
+PrimeUI.label(win, 5, 7, "Welcome to XCC", colors.yellow)
+
+-- Start the interface
+PrimeUI.run()
+</code>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="basalt-generator.html">UI Designer</a>
+                <a href="#docs">Documentation</a>
+                <a href="#github">GitHub</a>
+                <a href="#api">API Reference</a>
+                <a href="#community">Community</a>
+            </div>
+            <p class="footer-text">
+                © 2025 XCC - ComputerCraft Tools Collection. Empowering ComputerCraft developers worldwide.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards
+        document.querySelectorAll('.feature-card').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            observer.observe(card);
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

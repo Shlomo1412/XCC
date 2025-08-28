@@ -1,4 +1,4 @@
-// UI Designer for Basalt 2 and PixelUI - Main JavaScript
+// UI Designer for Basalt 2, PixelUI, and PrimeUI - Main JavaScript
 class UIDesigner {
     constructor() {
         this.canvas = document.getElementById('canvas');
@@ -21,6 +21,7 @@ class UIDesigner {
         this.currentFramework = 'basalt';
         this.basaltElements = this.initializeBasaltElements();
         this.pixelUIElements = this.initializePixelUIElements();
+        this.primeUIElements = this.initializePrimeUIElements();
         this.ccColors = this.initializeCCColors();
         
         this.init();
@@ -33,6 +34,8 @@ class UIDesigner {
         this.createTerminalGrid();
         this.loadPreset('computer');
         this.updateElementPalette();
+        // Check for project to load after initialization
+        setTimeout(() => this.checkProjectLoad(), 100);
     }
     
     setupFrameworkTabs() {
@@ -52,8 +55,10 @@ class UIDesigner {
                 // Update title
                 if (this.currentFramework === 'basalt') {
                     logoTitle.textContent = 'Basalt 2 UI Designer';
-                } else {
+                } else if (this.currentFramework === 'pixelui') {
                     logoTitle.textContent = 'PixelUI Designer';
+                } else if (this.currentFramework === 'primeui') {
+                    logoTitle.textContent = 'PrimeUI Designer';
                 }
                 
                 // Clear canvas and update element palette
@@ -67,7 +72,8 @@ class UIDesigner {
         const elementPalette = document.querySelector('.element-palette');
         if (!elementPalette) return;
         
-        const elements = this.currentFramework === 'basalt' ? this.basaltElements : this.pixelUIElements;
+        const elements = this.currentFramework === 'basalt' ? this.basaltElements : 
+                        this.currentFramework === 'pixelui' ? this.pixelUIElements : this.primeUIElements;
         
         elementPalette.innerHTML = '';
         
@@ -114,11 +120,11 @@ class UIDesigner {
             } else {
                 if (['Container'].includes(element.type)) {
                     category = 'Containers';
-                } else if (['Label', 'Button', 'TextBox', 'CheckBox'].includes(element.type)) {
+                } else if (['Label', 'Button', 'TextBox', 'CheckBox', 'RadioButton', 'ToggleSwitch', 'NumericUpDown'].includes(element.type)) {
                     category = 'Basic';
-                } else if (['ListView', 'ComboBox', 'TabControl'].includes(element.type)) {
+                } else if (['ListView', 'ComboBox', 'TabControl', 'TreeView', 'Accordion'].includes(element.type)) {
                     category = 'Advanced';
-                } else if (['ProgressBar', 'Slider', 'Chart', 'Canvas', 'ColorPicker'].includes(element.type)) {
+                } else if (['ProgressBar', 'Slider', 'RangeSlider', 'Chart', 'Canvas', 'ColorPicker', 'LoadingIndicator'].includes(element.type)) {
                     category = 'Display';
                 } else if (['RichTextBox', 'CodeEditor'].includes(element.type)) {
                     category = 'Editors';
@@ -168,7 +174,14 @@ class UIDesigner {
             'Canvas': '🎨',
             'RichTextBox': '📄',
             'CodeEditor': '💻',
-            'ColorPicker': '🎨'
+            'ColorPicker': '🎨',
+            'RadioButton': '🔘',
+            'ToggleSwitch': '🔀',
+            'RangeSlider': '🎚️',
+            'LoadingIndicator': '⏳',
+            'Accordion': '📂',
+            'TreeView': '🌳',
+            'NumericUpDown': '🔢'
         };
         
         return icons[type] || '📦';
@@ -386,6 +399,104 @@ class UIDesigner {
                 properties: {
                     basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
                     picker: ['selectedColor', 'gridColumns', 'colorSize', 'showPreview', 'showName']
+                }
+            },
+            RadioButton: {
+                type: 'RadioButton',
+                defaultProps: {
+                    x: 1, y: 1, width: 8, height: 1,
+                    text: 'RadioButton', checked: false, group: 'default',
+                    color: 'white', background: 'black', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background'],
+                    radio: ['text', 'checked', 'group']
+                }
+            },
+            ToggleSwitch: {
+                type: 'ToggleSwitch',
+                defaultProps: {
+                    x: 1, y: 1, width: 6, height: 1,
+                    toggled: false, text: 'Toggle',
+                    onColor: 'green', offColor: 'red', knobColor: 'white',
+                    visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['onColor', 'offColor', 'knobColor'],
+                    toggle: ['toggled', 'text']
+                }
+            },
+            RangeSlider: {
+                type: 'RangeSlider',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 1,
+                    minValue: 25, maxValue: 75, rangeMin: 0, rangeMax: 100,
+                    step: 1, trackColor: 'gray', fillColor: 'cyan',
+                    knobColor: 'white', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['trackColor', 'fillColor', 'knobColor'],
+                    range: ['minValue', 'maxValue', 'rangeMin', 'rangeMax', 'step']
+                }
+            },
+            LoadingIndicator: {
+                type: 'LoadingIndicator',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 1,
+                    progress: 0, style: 'bar', text: 'Loading...',
+                    showPercent: true, animated: true,
+                    color: 'cyan', background: 'gray', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background'],
+                    loading: ['progress', 'style', 'text', 'showPercent', 'animated']
+                }
+            },
+            Accordion: {
+                type: 'Accordion',
+                defaultProps: {
+                    x: 1, y: 1, width: 30, height: 15,
+                    sections: [], mode: 'single',
+                    color: 'white', background: 'black', border: true,
+                    visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background', 'border'],
+                    accordion: ['sections', 'mode']
+                }
+            },
+            TreeView: {
+                type: 'TreeView',
+                defaultProps: {
+                    x: 1, y: 1, width: 25, height: 15,
+                    data: [], showLines: true, showRoot: true,
+                    expandable: true, selectable: true,
+                    color: 'white', background: 'black', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background'],
+                    tree: ['data', 'showLines', 'showRoot', 'expandable', 'selectable']
+                }
+            },
+            NumericUpDown: {
+                type: 'NumericUpDown',
+                defaultProps: {
+                    x: 1, y: 1, width: 12, height: 3,
+                    value: 0, min: 0, max: 100, step: 1,
+                    showButtons: true, increment: 1,
+                    color: 'white', background: 'black', border: true,
+                    buttonColor: 'gray', visible: true, enabled: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
+                    appearance: ['color', 'background', 'border', 'buttonColor'],
+                    numeric: ['value', 'min', 'max', 'step', 'increment', 'showButtons']
                 }
             }
         };
@@ -691,6 +802,194 @@ class UIDesigner {
         };
     }
     
+    initializePrimeUIElements() {
+        return {
+            // Core UI Components
+            Button: {
+                type: 'Button',
+                defaultProps: {
+                    x: 1, y: 1, width: 8, height: 3,
+                    text: 'Button',
+                    fgColor: 'white', bgColor: 'lightGray', clickedColor: 'gray',
+                    visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'text'],
+                    appearance: ['fgColor', 'bgColor', 'clickedColor'],
+                    events: ['action']
+                },
+                category: 'Basic'
+            },
+            Label: {
+                type: 'Label',
+                defaultProps: {
+                    x: 1, y: 1, width: 10, height: 1,
+                    text: 'Label',
+                    fgColor: 'white', bgColor: 'black',
+                    visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'text'],
+                    appearance: ['fgColor', 'bgColor']
+                },
+                category: 'Basic'
+            },
+            CenterLabel: {
+                type: 'CenterLabel',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 1,
+                    text: 'Centered Text',
+                    fgColor: 'white', bgColor: 'black',
+                    visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'text'],
+                    appearance: ['fgColor', 'bgColor']
+                },
+                category: 'Basic'
+            },
+            InputBox: {
+                type: 'InputBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 1,
+                    fgColor: 'white', bgColor: 'black',
+                    replacement: '', default: '',
+                    visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width'],
+                    appearance: ['fgColor', 'bgColor'],
+                    input: ['replacement', 'default', 'history', 'completion'],
+                    events: ['action']
+                },
+                category: 'Input'
+            },
+            ProgressBar: {
+                type: 'ProgressBar',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 1,
+                    fgColor: 'white', bgColor: 'black',
+                    useShade: false,
+                    visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width'],
+                    appearance: ['fgColor', 'bgColor', 'useShade']
+                },
+                category: 'Controls'
+            },
+            SelectionBox: {
+                type: 'SelectionBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 8,
+                    entries: ['Option 1', 'Option 2', 'Option 3'],
+                    fgColor: 'white', bgColor: 'black'
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height'],
+                    appearance: ['fgColor', 'bgColor'],
+                    data: ['entries'],
+                    events: ['action', 'selectChangeAction']
+                },
+                category: 'Lists'
+            },
+            CheckSelectionBox: {
+                type: 'CheckSelectionBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 8,
+                    selections: {'Option 1': false, 'Option 2': false, 'Option 3': false},
+                    fgColor: 'white', bgColor: 'black'
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height'],
+                    appearance: ['fgColor', 'bgColor'],
+                    data: ['selections'],
+                    events: ['action']
+                },
+                category: 'Lists'
+            },
+            ScrollBox: {
+                type: 'ScrollBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 10,
+                    innerHeight: 20,
+                    allowArrowKeys: true, showScrollIndicators: false,
+                    fgColor: 'white', bgColor: 'black'
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'innerHeight'],
+                    behavior: ['allowArrowKeys', 'showScrollIndicators'],
+                    appearance: ['fgColor', 'bgColor']
+                },
+                category: 'Containers'
+            },
+            TextBox: {
+                type: 'TextBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 30, height: 10,
+                    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+                    fgColor: 'white', bgColor: 'black'
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'text'],
+                    appearance: ['fgColor', 'bgColor']
+                },
+                category: 'Basic'
+            },
+            BorderBox: {
+                type: 'BorderBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 10,
+                    fgColor: 'white', bgColor: 'black'
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height'],
+                    appearance: ['fgColor', 'bgColor']
+                },
+                category: 'Decoration'
+            },
+            HorizontalLine: {
+                type: 'HorizontalLine',
+                defaultProps: {
+                    x: 1, y: 1, width: 20,
+                    fgColor: 'white', bgColor: 'black'
+                },
+                properties: {
+                    basic: ['x', 'y', 'width'],
+                    appearance: ['fgColor', 'bgColor']
+                },
+                category: 'Decoration'
+            },
+            DrawText: {
+                type: 'DrawText',
+                defaultProps: {
+                    x: 1, y: 1,
+                    text: 'Multi-line text with word wrapping',
+                    resizeToFit: false,
+                    fgColor: 'white', bgColor: 'black'
+                },
+                properties: {
+                    basic: ['text', 'resizeToFit'],
+                    appearance: ['fgColor', 'bgColor']
+                },
+                category: 'Basic'
+            },
+            DrawImage: {
+                type: 'DrawImage',
+                defaultProps: {
+                    x: 1, y: 1,
+                    data: 'image.bimg',
+                    index: 1, setPalette: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'data'],
+                    image: ['index', 'setPalette']
+                },
+                category: 'Media'
+            }
+        };
+    }
+    
     initializeCCColors() {
         return {
             'white': 0x1, 'orange': 0x2, 'magenta': 0x4, 'lightBlue': 0x8,
@@ -823,6 +1122,29 @@ class UIDesigner {
         document.getElementById('downloadCodeBtn').addEventListener('click', () => {
             this.downloadExportCode();
         });
+
+        // TreeView Designer event listeners
+        const nodeTextInput = document.getElementById('nodeText');
+        const nodeExpandedInput = document.getElementById('nodeExpanded');
+        const nodeIconInput = document.getElementById('nodeIcon');
+        
+        if (nodeTextInput) {
+            nodeTextInput.addEventListener('input', () => {
+                this.updateSelectedNode();
+            });
+        }
+        
+        if (nodeExpandedInput) {
+            nodeExpandedInput.addEventListener('change', () => {
+                this.updateSelectedNode();
+            });
+        }
+        
+        if (nodeIconInput) {
+            nodeIconInput.addEventListener('input', () => {
+                this.updateSelectedNode();
+            });
+        }
     }
     
     loadPreset(preset) {
@@ -928,6 +1250,9 @@ class UIDesigner {
         this.selectElement(element);
         this.hideDropZone();
         
+        // Auto-save project if editing
+        setTimeout(() => this.autoSaveProject(), 500);
+        
         return element;
     }
     
@@ -944,16 +1269,17 @@ class UIDesigner {
     }
     
     updateElementDiv(elementDiv, element) {
-        const { x, y, width, height, background, foreground, visible } = element.properties;
+        const { x, y, width, height, background, foreground, visible, bgColor, fgColor } = element.properties;
         
         elementDiv.style.left = ((x - 1) * this.cellWidth) + 'px';
         elementDiv.style.top = ((y - 1) * this.cellHeight) + 'px';
         elementDiv.style.width = (width * this.cellWidth) + 'px';
         elementDiv.style.height = (height * this.cellHeight) + 'px';
-        elementDiv.style.display = visible ? 'block' : 'none';
+        elementDiv.style.display = (visible !== false) ? 'block' : 'none';
         
-        // Apply CC colors
-        elementDiv.className = `ui-element cc-color-${background}`;
+        // Apply CC colors - handle both Basalt/PixelUI (background) and PrimeUI (bgColor) naming
+        const bgColorValue = background || bgColor || 'black';
+        elementDiv.className = `ui-element cc-color-${bgColorValue}`;
         if (this.selectedElement && this.selectedElement.id === element.id) {
             elementDiv.classList.add('selected');
         }
@@ -1010,6 +1336,52 @@ class UIDesigner {
                 
             case 'BigFont':
                 elementDiv.innerHTML = `<div style="text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: ${12 + properties.fontSize * 2}px; font-weight: bold;">${properties.text}</div>`;
+                break;
+                
+            // PrimeUI Elements
+            case 'CenterLabel':
+                elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px; line-height: 1; text-align: center; display: block; width: 100%;">${properties.text}</span>`;
+                break;
+                
+            case 'InputBox':
+                const inputDisplayText = properties.default || 'Input Box';
+                elementDiv.innerHTML = `<input type="text" value="${inputDisplayText}" style="width: 100%; height: 100%; background: transparent; border: 1px solid #666; color: var(--fg-color, #fff); font-size: 11px; padding: 2px;">`;
+                break;
+                
+            case 'SelectionBox':
+                const entriesCount = Array.isArray(properties.entries) ? properties.entries.length : 3;
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: 10px;">Selection (${entriesCount} items)</div>`;
+                break;
+                
+            case 'CheckSelectionBox':
+                const selectionsCount = properties.selections ? Object.keys(properties.selections).length : 3;
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: 10px;">☑️ Checkboxes (${selectionsCount} items)</div>`;
+                break;
+                
+            case 'ScrollBox':
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: 10px; position: relative;">📜 Scroll Box<div style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); font-size: 8px;">▲▼</div></div>`;
+                break;
+                
+            case 'TextBox':
+                const textPreview = properties.text ? properties.text.substring(0, 50) + '...' : 'Text Box';
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: 10px; word-wrap: break-word;">${textPreview}</div>`;
+                break;
+                
+            case 'BorderBox':
+                elementDiv.innerHTML = `<div style="border: 2px solid var(--fg-color, #fff); width: 100%; height: 100%; box-sizing: border-box;"></div>`;
+                break;
+                
+            case 'HorizontalLine':
+                elementDiv.innerHTML = `<div style="border-top: 1px solid var(--fg-color, #fff); width: 100%; height: 50%; box-sizing: border-box;"></div>`;
+                break;
+                
+            case 'DrawText':
+                const drawTextPreview = properties.text ? properties.text.substring(0, 30) + '...' : 'Draw Text';
+                elementDiv.innerHTML = `<div style="color: var(--fg-color, #fff); font-size: 10px; word-wrap: break-word; overflow: hidden;">${drawTextPreview}</div>`;
+                break;
+                
+            case 'DrawImage':
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #666); font-size: 10px;">🖼️ ${properties.data || 'BIMG'}</div>`;
                 break;
                 
             default:
@@ -1165,6 +1537,9 @@ class UIDesigner {
         if (this.selectedElement && this.selectedElement.id === element.id) {
             this.updatePropertiesPanel();
         }
+        
+        // Auto-save project if editing
+        setTimeout(() => this.autoSaveProject(), 500);
     }
     
     showProperties(element) {
@@ -1275,6 +1650,23 @@ class UIDesigner {
                 inputHtml = this.createItemsManager(element, property);
             } else if (property === 'nodes' && element.type === 'Tree') {
                 inputHtml = this.createNodesManager(element, property);
+            } else if ((property === 'data' && element.type === 'TreeView') || (property === 'nodes' && element.type === 'Tree')) {
+                // TreeView Designer for both PixelUI TreeView and Basalt Tree
+                let displayValue = '';
+                if (Array.isArray(value)) {
+                    displayValue = this.formatTreeDataForDisplay(value);
+                } else {
+                    displayValue = 'No tree data configured';
+                }
+                
+                inputHtml = `
+                    <div class="tree-designer-controls">
+                        <button class="btn btn-sm" onclick="designer.openTreeDesigner(designer.selectedElement, '${property}')" style="background: #38a169; color: white; margin-bottom: 8px; width: 100%;">
+                            🌳 Open TreeView Designer
+                        </button>
+                        <textarea rows="3" readonly style="background: #f7fafc; color: #2d3748;" placeholder="Use TreeView Designer to configure tree structure">${displayValue}</textarea>
+                    </div>
+                `;
             } else if (property === 'series' && (element.type === 'Graph' || element.type === 'BarChart' || element.type === 'LineChart')) {
                 inputHtml = this.createSeriesManager(element, property);
             } else if ((property === 'data' && element.type === 'Chart') || (property === 'series' && (element.type === 'Graph' || element.type === 'BarChart' || element.type === 'LineChart'))) {
@@ -1385,6 +1777,30 @@ class UIDesigner {
         html += `</div>`;
         
         return html;
+    }
+    
+    formatTreeDataForDisplay(data, depth = 0) {
+        if (!Array.isArray(data) || data.length === 0) {
+            return 'No tree data';
+        }
+        
+        let result = '';
+        const indent = '  '.repeat(depth);
+        
+        data.forEach((node, index) => {
+            const icon = node.icon || '📄';
+            const text = node.text || 'Unnamed Node';
+            const expandedMarker = node.expanded ? '▼' : '▶';
+            const hasChildren = node.children && node.children.length > 0;
+            
+            result += `${indent}${hasChildren ? expandedMarker : ' '} ${icon} ${text}\n`;
+            
+            if (hasChildren && node.expanded) {
+                result += this.formatTreeDataForDisplay(node.children, depth + 1);
+            }
+        });
+        
+        return result.trim();
     }
     
     createSeriesManager(element, property) {
@@ -1641,11 +2057,23 @@ class UIDesigner {
     
     clearCanvas() {
         if (confirm('Are you sure you want to clear the canvas? This will delete all elements.')) {
-            this.elements.clear();
-            document.querySelectorAll('.ui-element').forEach(el => el.remove());
-            this.selectElement(null);
-            this.showDropZone();
+            this.clearCanvasForImport();
         }
+    }
+    
+    clearCanvasForImport() {
+        // Clear all elements
+        this.elements.clear();
+        this.selectedElement = null;
+        
+        // Clear the visual canvas - use correct selector
+        document.querySelectorAll('.ui-element').forEach(el => el.remove());
+        
+        // Clear properties panel
+        this.hideProperties();
+        
+        // Show drop zone
+        this.showDropZone();
     }
     
     updateElementPositions() {
@@ -1686,7 +2114,8 @@ class UIDesigner {
         // Update modal title based on framework
         const modalTitle = document.querySelector('#exportModal h3');
         if (modalTitle) {
-            modalTitle.textContent = `Export ${this.currentFramework === 'basalt' ? 'Basalt' : 'PixelUI'} Code`;
+            modalTitle.textContent = `Export ${this.currentFramework === 'basalt' ? 'Basalt' : 
+                                             this.currentFramework === 'pixelui' ? 'PixelUI' : 'PrimeUI'} Code`;
         }
         
         this.showModal('exportModal');
@@ -1743,12 +2172,19 @@ class UIDesigner {
     
     importData(data, filename) {
         try {
+            console.log('Attempting to import data from:', filename);
+            
             // Try to parse as JSON first
             const jsonData = JSON.parse(data);
             
-            if (jsonData.elements && jsonData.terminal) {
+            // Check if it's XCC format
+            if (jsonData.format === 'XCC' && jsonData.version) {
+                console.log('Detected XCC format');
+                this.importXCCData(jsonData);
+            } else if (jsonData.elements && jsonData.terminal) {
+                console.log('Detected legacy JSON format');
                 // Valid Basalt UI Designer format
-                this.clearCanvas();
+                this.clearCanvasForImport();
                 
                 // Set terminal size
                 this.terminalWidth = jsonData.terminal.width;
@@ -1774,80 +2210,152 @@ class UIDesigner {
                 
                 alert('Design imported successfully!');
             } else {
-                throw new Error('Invalid JSON format. Expected Basalt UI Designer format.');
+                throw new Error('Invalid JSON format. Expected XCC or Basalt UI Designer format.');
             }
         } catch (jsonError) {
+            console.log('JSON parsing failed, trying Lua code:', jsonError.message);
             // If JSON parsing fails, try to parse as Lua code
-            if (data.includes('basalt') && data.includes('createFrame')) {
+            if ((data.includes('basalt') && data.includes('createFrame')) || 
+                (data.includes('PixelUI') && (data.includes('container') || data.includes('label') || data.includes('button')))) {
                 this.importLuaCode(data);
             } else {
-                throw new Error('Invalid format. Please provide JSON data or Lua code.');
+                throw new Error('Invalid format. Please provide XCC, JSON data, or Lua code.');
             }
+        }
+    }
+    
+    switchFramework() {
+        // Update the title
+        const logoTitle = document.getElementById('logoTitle');
+        if (logoTitle) {
+            if (this.currentFramework === 'basalt') {
+                logoTitle.textContent = 'Basalt 2 UI Designer';
+            } else {
+                logoTitle.textContent = 'PixelUI Designer';
+            }
+        }
+        
+        // Update the tab buttons
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(tab => {
+            tab.classList.remove('active');
+            if (tab.dataset.framework === this.currentFramework) {
+                tab.classList.add('active');
+            }
+        });
+        
+        // Update the element palette to reflect the current framework
+        this.updateElementPalette();
+        
+        // Update any framework-specific UI elements
+        const frameworkDisplay = document.getElementById('currentFramework');
+        if (frameworkDisplay) {
+            frameworkDisplay.textContent = this.currentFramework === 'basalt' ? 'Basalt' : 'PixelUI';
+        }
+        
+        // Clear and rebuild the properties panel for the selected element
+        if (this.selectedElement) {
+            this.updatePropertiesPanel();
+        }
+    }
+    
+    importXCCData(xccData) {
+        try {
+            console.log('Importing XCC data:', xccData);
+            
+            // Clear canvas without confirmation dialog
+            this.clearCanvasForImport();
+            
+            // Validate XCC format version
+            if (xccData.version !== '1.0') {
+                console.warn(`Importing XCC format version ${xccData.version}, expected 1.0`);
+            }
+            
+            // Switch to the correct framework if needed
+            if (xccData.framework && xccData.framework !== this.currentFramework) {
+                console.log(`Switching from ${this.currentFramework} to ${xccData.framework}`);
+                this.currentFramework = xccData.framework;
+                this.switchFramework();
+            }
+            
+            // Set terminal size
+            this.terminalWidth = xccData.terminal.width;
+            this.terminalHeight = xccData.terminal.height;
+            
+            // Update UI
+            document.getElementById('terminalWidth').value = this.terminalWidth;
+            document.getElementById('terminalHeight').value = this.terminalHeight;
+            document.getElementById('terminalPreset').value = 'custom';
+            this.updateTerminalSize();
+            
+            console.log(`Importing ${xccData.elements.length} elements`);
+            
+            // Import elements with enhanced XCC data
+            xccData.elements.forEach((elementData, index) => {
+                try {
+                    console.log(`Creating element ${index + 1}:`, elementData.type, elementData.properties);
+                    
+                    // Create element object manually to preserve the original ID
+                    const elementDef = this.getCurrentElements()[elementData.type];
+                    if (!elementDef) {
+                        console.warn(`Unknown element type: ${elementData.type}`);
+                        return;
+                    }
+                    
+                    const element = {
+                        id: elementData.id,
+                        type: elementData.type,
+                        properties: { ...elementDef.defaultProps, ...elementData.properties },
+                        children: elementData.children || []
+                    };
+                    
+                    // Add to elements map
+                    this.elements.set(element.id, element);
+                    
+                    // Render the element with proper interactivity
+                    this.renderElement(element);
+                    
+                    console.log(`Successfully created element:`, element);
+                } catch (elementError) {
+                    console.error(`Error creating element ${index + 1}:`, elementError);
+                    throw elementError;
+                }
+            });
+            
+            // Hide drop zone since we have elements
+            this.hideDropZone();
+            
+            this.hideModal(document.getElementById('importModal'));
+            
+            // Clear the form
+            document.getElementById('importFile').value = '';
+            document.getElementById('importCode').value = '';
+            
+            // Show enhanced success message with project info
+            const projectName = xccData.project ? xccData.project.name : 'Untitled Project';
+            const elementCount = xccData.elements.length;
+            alert(`XCC Project "${projectName}" imported successfully!\n${elementCount} elements loaded.`);
+            
+        } catch (error) {
+            console.error('XCC import error:', error);
+            throw new Error('Error importing XCC data: ' + error.message);
         }
     }
     
     importLuaCode(luaCode) {
         try {
-            this.clearCanvas();
+            this.clearCanvasForImport();
             
-            // Extract terminal size from main:setSize(width, height)
-            const sizeMatch = luaCode.match(/main:setSize\((\d+),\s*(\d+)\)/);
-            if (sizeMatch) {
-                this.terminalWidth = parseInt(sizeMatch[1]);
-                this.terminalHeight = parseInt(sizeMatch[2]);
-                
-                // Update UI
-                document.getElementById('terminalWidth').value = this.terminalWidth;
-                document.getElementById('terminalHeight').value = this.terminalHeight;
-                document.getElementById('terminalPreset').value = 'custom';
-                this.updateTerminalSize();
-            }
+            // Detect if this is PixelUI or Basalt code
+            const isPixelUI = luaCode.includes('PixelUI');
+            const isBasalt = luaCode.includes('basalt') && luaCode.includes('createFrame');
             
-            // Extract elements - pattern: local varName = main:addElementType()
-            const elementMatches = luaCode.matchAll(/local\s+(\w+)\s*=\s*main:add(\w+)\(\)/g);
-            const elements = {};
-            
-            for (const match of elementMatches) {
-                const varName = match[1];
-                const elementType = match[2];
-                
-                // Create element
-                const element = this.createElement(elementType);
-                elements[varName] = element;
-                
-                // Extract properties for this element
-                const propRegex = new RegExp(`${varName}:(\\w+)\\(([^)]+)\\)`, 'g');
-                let propMatch;
-                
-                while ((propMatch = propRegex.exec(luaCode)) !== null) {
-                    const methodName = propMatch[1];
-                    const value = propMatch[2].trim();
-                    
-                    // Convert method name to property name (setX -> x, setWidth -> width)
-                    if (methodName.startsWith('set')) {
-                        const propName = methodName.slice(3).toLowerCase();
-                        let parsedValue = this.parseLuaValue(value);
-                        
-                        // Handle special cases
-                        if (propName === 'x' || propName === 'y' || propName === 'width' || propName === 'height') {
-                            element.properties[propName] = parsedValue;
-                        } else if (propName === 'background' || propName === 'foreground' || propName.includes('color')) {
-                            // Convert colors.colorName to just colorName
-                            if (typeof parsedValue === 'string' && parsedValue.startsWith('colors.')) {
-                                parsedValue = parsedValue.replace('colors.', '');
-                            }
-                            element.properties[propName] = parsedValue;
-                        } else {
-                            element.properties[propName] = parsedValue;
-                        }
-                    }
-                }
-                
-                // Update element position and properties
-                this.updateElementProperty(element, 'x', element.properties.x);
-                this.updateElementProperty(element, 'y', element.properties.y);
-                this.updateElementProperty(element, 'width', element.properties.width);
-                this.updateElementProperty(element, 'height', element.properties.height);
+            if (isPixelUI) {
+                this.importPixelUICode(luaCode);
+            } else if (isBasalt) {
+                this.importBasaltCode(luaCode);
+            } else {
+                throw new Error('Unrecognized Lua code format');
             }
             
             this.hideModal(document.getElementById('importModal'));
@@ -1860,6 +2368,236 @@ class UIDesigner {
             
         } catch (error) {
             throw new Error('Error parsing Lua code: ' + error.message);
+        }
+    }
+    
+    importPixelUICode(luaCode) {
+        // Extract terminal size from PixelUI.container({width = X, height = Y})
+        const containerMatch = luaCode.match(/PixelUI\.container\(\{\s*width\s*=\s*(\d+),\s*height\s*=\s*(\d+)/);
+        if (containerMatch) {
+            this.terminalWidth = parseInt(containerMatch[1]);
+            this.terminalHeight = parseInt(containerMatch[2]);
+            
+            // Update UI
+            document.getElementById('terminalWidth').value = this.terminalWidth;
+            document.getElementById('terminalHeight').value = this.terminalHeight;
+            document.getElementById('terminalPreset').value = 'custom';
+            this.updateTerminalSize();
+        }
+        
+        // Extract elements - pattern: local varName = PixelUI.elementType({...})
+        // Use a more robust approach to handle nested braces and multi-line properties
+        const elementRegex = /local\s+(\w+)\s*=\s*PixelUI\.(\w+)\s*\(\s*\{/g;
+        let match;
+        
+        while ((match = elementRegex.exec(luaCode)) !== null) {
+            const varName = match[1];
+            const elementType = match[2];
+            const startPos = match.index + match[0].length - 1; // Position of opening brace
+            
+            // Find the matching closing brace
+            let braceCount = 1;
+            let endPos = startPos + 1;
+            
+            while (endPos < luaCode.length && braceCount > 0) {
+                if (luaCode[endPos] === '{') {
+                    braceCount++;
+                } else if (luaCode[endPos] === '}') {
+                    braceCount--;
+                }
+                endPos++;
+            }
+            
+            if (braceCount === 0) {
+                // Extract properties string (excluding the outer braces)
+                const propertiesStr = luaCode.substring(startPos + 1, endPos - 1);
+                
+                // Convert PixelUI element type to XCC element type
+                const xccElementType = this.convertPixelUIToXCCType(elementType);
+                
+                if (xccElementType) {
+                    // Create element
+                    const element = this.createElement(xccElementType);
+                    
+                    // Parse properties from the properties string
+                    this.parsePixelUIProperties(element, propertiesStr);
+                    
+                    // Update element visual
+                    this.updateElementProperty(element, 'x', element.properties.x);
+                    this.updateElementProperty(element, 'y', element.properties.y);
+                    this.updateElementProperty(element, 'width', element.properties.width);
+                    this.updateElementProperty(element, 'height', element.properties.height);
+                }
+            }
+        }
+    }
+    
+    importBasaltCode(luaCode) {
+        // Extract terminal size from main:setSize(width, height)
+        const sizeMatch = luaCode.match(/main:setSize\((\d+),\s*(\d+)\)/);
+        if (sizeMatch) {
+            this.terminalWidth = parseInt(sizeMatch[1]);
+            this.terminalHeight = parseInt(sizeMatch[2]);
+            
+            // Update UI
+            document.getElementById('terminalWidth').value = this.terminalWidth;
+            document.getElementById('terminalHeight').value = this.terminalHeight;
+            document.getElementById('terminalPreset').value = 'custom';
+            this.updateTerminalSize();
+        }
+        
+        // Extract elements - pattern: local varName = main:addElementType()
+        const elementMatches = luaCode.matchAll(/local\s+(\w+)\s*=\s*main:add(\w+)\(\)/g);
+        const elements = {};
+        
+        for (const match of elementMatches) {
+            const varName = match[1];
+            const elementType = match[2];
+            
+            // Create element
+            const element = this.createElement(elementType);
+            elements[varName] = element;
+            
+            // Extract properties for this element
+            const propRegex = new RegExp(`${varName}:(\\w+)\\(([^)]+)\\)`, 'g');
+            let propMatch;
+            
+            while ((propMatch = propRegex.exec(luaCode)) !== null) {
+                const methodName = propMatch[1];
+                const value = propMatch[2].trim();
+                
+                // Convert method name to property name (setX -> x, setWidth -> width)
+                if (methodName.startsWith('set')) {
+                    const propName = methodName.slice(3).toLowerCase();
+                    let parsedValue = this.parseLuaValue(value);
+                    
+                    // Handle special cases
+                    if (propName === 'x' || propName === 'y' || propName === 'width' || propName === 'height') {
+                        element.properties[propName] = parsedValue;
+                    } else if (propName === 'background' || propName === 'foreground' || propName.includes('color')) {
+                        // Convert colors.colorName to just colorName
+                        if (typeof parsedValue === 'string' && parsedValue.startsWith('colors.')) {
+                            parsedValue = parsedValue.replace('colors.', '');
+                        }
+                        element.properties[propName] = parsedValue;
+                    } else {
+                        element.properties[propName] = parsedValue;
+                    }
+                }
+            }
+            
+            // Update element position and properties
+            this.updateElementProperty(element, 'x', element.properties.x);
+            this.updateElementProperty(element, 'y', element.properties.y);
+            this.updateElementProperty(element, 'width', element.properties.width);
+            this.updateElementProperty(element, 'height', element.properties.height);
+        }
+    }
+    
+    convertPixelUIToXCCType(pixelUIType) {
+        // Convert PixelUI camelCase function names to XCC PascalCase element types
+        const typeMap = {
+            'label': 'Label',
+            'button': 'Button',
+            'input': 'Input',
+            'textBox': 'TextBox',
+            'checkbox': 'CheckBox',
+            'checkBox': 'CheckBox',
+            'list': 'List',
+            'listView': 'ListView',
+            'slider': 'Slider',
+            'rangeSlider': 'RangeSlider',
+            'progressBar': 'ProgressBar',
+            'radioButton': 'RadioButton',
+            'toggleSwitch': 'ToggleSwitch',
+            'comboBox': 'ComboBox',
+            'loadingIndicator': 'LoadingIndicator',
+            'accordion': 'Accordion',
+            'treeView': 'TreeView',
+            'numericUpDown': 'NumericUpDown',
+            'tabControl': 'TabControl',
+            'richTextBox': 'RichTextBox',
+            'codeEditor': 'CodeEditor',
+            'colorPicker': 'ColorPicker',
+            'chart': 'Chart',
+            'barChart': 'BarChart',
+            'lineChart': 'LineChart'
+        };
+        
+        return typeMap[pixelUIType] || null;
+    }
+    
+    parsePixelUIProperties(element, propertiesStr) {
+        // Parse PixelUI properties format: key = value, key = value
+        // Handle nested structures properly
+        
+        let pos = 0;
+        while (pos < propertiesStr.length) {
+            // Skip whitespace and commas
+            while (pos < propertiesStr.length && /[\s,]/.test(propertiesStr[pos])) {
+                pos++;
+            }
+            
+            if (pos >= propertiesStr.length) break;
+            
+            // Find property name
+            const keyMatch = propertiesStr.substring(pos).match(/^(\w+)\s*=/);
+            if (!keyMatch) break;
+            
+            const key = keyMatch[1];
+            pos += keyMatch[0].length;
+            
+            // Skip whitespace after =
+            while (pos < propertiesStr.length && /\s/.test(propertiesStr[pos])) {
+                pos++;
+            }
+            
+            // Find value - handle nested structures
+            let value = '';
+            let braceCount = 0;
+            let inString = false;
+            let stringChar = '';
+            let startPos = pos;
+            
+            while (pos < propertiesStr.length) {
+                const char = propertiesStr[pos];
+                
+                if (!inString) {
+                    if (char === '"' || char === "'") {
+                        inString = true;
+                        stringChar = char;
+                    } else if (char === '{') {
+                        braceCount++;
+                    } else if (char === '}') {
+                        braceCount--;
+                    } else if (char === ',' && braceCount === 0) {
+                        // End of this property value
+                        break;
+                    }
+                } else {
+                    if (char === stringChar && propertiesStr[pos - 1] !== '\\') {
+                        inString = false;
+                    }
+                }
+                
+                pos++;
+            }
+            
+            value = propertiesStr.substring(startPos, pos).trim();
+            
+            // Parse the value
+            const parsedValue = this.parseLuaValue(value);
+            
+            // Handle color values
+            if (key.includes('color') || key === 'background') {
+                let colorValue = parsedValue;
+                if (typeof colorValue === 'string' && colorValue.startsWith('colors.')) {
+                    colorValue = colorValue.replace('colors.', '');
+                }
+                element.properties[key] = colorValue;
+            } else {
+                element.properties[key] = parsedValue;
+            }
         }
     }
     
@@ -1882,19 +2620,33 @@ class UIDesigner {
         if (value === 'true') return true;
         if (value === 'false') return false;
         
-        // Handle arrays/tables like {"item1", "item2"}
+        // Handle arrays/tables like {"item1", "item2"} or {key1 = value1, key2 = value2}
         if (value.startsWith('{') && value.endsWith('}')) {
             try {
-                // Simple array parsing for strings
-                const items = value.slice(1, -1).split(',').map(item => {
-                    item = item.trim();
-                    if ((item.startsWith('"') && item.endsWith('"')) || 
-                        (item.startsWith("'") && item.endsWith("'"))) {
-                        return item.slice(1, -1);
+                const content = value.slice(1, -1).trim();
+                if (content === '') {
+                    return []; // Empty array
+                }
+                
+                // Check if it's an array-style table or object-style table
+                if (content.includes('=')) {
+                    // Object-style table: {key1 = value1, key2 = value2}
+                    const obj = {};
+                    const pairs = this.parseCommaSeparated(content);
+                    for (const pair of pairs) {
+                        const eqIndex = pair.indexOf('=');
+                        if (eqIndex > 0) {
+                            const key = pair.substring(0, eqIndex).trim();
+                            const val = pair.substring(eqIndex + 1).trim();
+                            obj[key] = this.parseLuaValue(val);
+                        }
                     }
-                    return item;
-                }).filter(item => item.length > 0);
-                return items;
+                    return obj;
+                } else {
+                    // Array-style table: {"item1", "item2", "item3"}
+                    const items = this.parseCommaSeparated(content);
+                    return items.map(item => this.parseLuaValue(item.trim())).filter(item => item !== '');
+                }
             } catch (e) {
                 return value; // Return as string if parsing fails
             }
@@ -1907,6 +2659,53 @@ class UIDesigner {
         
         // Return as string by default
         return value;
+    }
+    
+    parseCommaSeparated(content) {
+        // Parse comma-separated values while respecting nested structures and strings
+        const items = [];
+        let current = '';
+        let braceCount = 0;
+        let inString = false;
+        let stringChar = '';
+        
+        for (let i = 0; i < content.length; i++) {
+            const char = content[i];
+            
+            if (!inString) {
+                if (char === '"' || char === "'") {
+                    inString = true;
+                    stringChar = char;
+                    current += char;
+                } else if (char === '{') {
+                    braceCount++;
+                    current += char;
+                } else if (char === '}') {
+                    braceCount--;
+                    current += char;
+                } else if (char === ',' && braceCount === 0) {
+                    // End of current item
+                    if (current.trim()) {
+                        items.push(current.trim());
+                    }
+                    current = '';
+                } else {
+                    current += char;
+                }
+            } else {
+                current += char;
+                if (char === stringChar && content[i - 1] !== '\\') {
+                    inString = false;
+                }
+            }
+        }
+        
+        // Add the last item
+        if (current.trim()) {
+            items.push(current.trim());
+        }
+        
+        return items;
     }
     
     clearCanvas() {
@@ -1934,14 +2733,17 @@ class UIDesigner {
     }
     
     getCurrentElements() {
-        return this.currentFramework === 'basalt' ? this.basaltElements : this.pixelUIElements;
+        return this.currentFramework === 'basalt' ? this.basaltElements : 
+               this.currentFramework === 'pixelui' ? this.pixelUIElements : this.primeUIElements;
     }
     
     generateCode() {
         if (this.currentFramework === 'basalt') {
             return this.generateBasaltCode();
-        } else {
+        } else if (this.currentFramework === 'pixelui') {
             return this.generatePixelUICode();
+        } else if (this.currentFramework === 'primeui') {
+            return this.generatePrimeUICode();
         }
     }
 
@@ -2292,29 +3094,8 @@ class UIDesigner {
                     {x: 4, y: 30}, {x: 5, y: 20}
                 ];
             }
-        } else if (element.type === 'BarChart' || element.type === 'LineChart' || element.type === 'Graph') {
-            // Basalt format (series object)
-            const seriesData = {};
-            this.currentChartData.forEach(series => {
-                seriesData[series.name] = series.data.map(point => point.y);
-            });
-            element.properties[property] = seriesData;
-            
-            // Set minValue and maxValue based on data
-            if (this.currentChartData.length > 0) {
-                const allValues = this.currentChartData.flatMap(series => 
-                    series.data.map(point => point.y)
-                );
-                const minVal = Math.min(...allValues);
-                const maxVal = Math.max(...allValues);
-                
-                // Add some padding to the range
-                const padding = (maxVal - minVal) * 0.1;
-                element.properties.minValue = Math.max(0, Math.floor(minVal - padding));
-                element.properties.maxValue = Math.ceil(maxVal + padding);
-            }
         } else {
-            // Fallback - treat as series format
+            // Basalt format (series object)
             const seriesData = {};
             this.currentChartData.forEach(series => {
                 seriesData[series.name] = series.data.map(point => point.y);
@@ -2348,6 +3129,326 @@ class UIDesigner {
         }];
         this.renderChartSeries();
         this.updateChartPreview();
+    }
+
+    // TreeView Designer Methods
+    openTreeDesigner(element, property) {
+        this.currentTreeElement = element;
+        this.currentTreeProperty = property;
+        this.selectedTreeNode = null;
+        
+        // Initialize tree data if empty
+        if (!element.properties[property] || element.properties[property].length === 0) {
+            this.currentTreeData = [
+                {
+                    text: 'Root Node',
+                    expanded: true,
+                    icon: '📁',
+                    children: [
+                        { text: 'Child 1', expanded: false, icon: '📄' },
+                        { text: 'Child 2', expanded: false, icon: '📄' }
+                    ]
+                }
+            ];
+        } else {
+            // Load existing data
+            this.currentTreeData = this.parseTreeData(element.properties[property]);
+        }
+        
+        this.renderTreePreview();
+        this.showModal('treeDesignerModal');
+    }
+    
+    parseTreeData(data) {
+        // Handle different data formats
+        if (typeof data === 'string') {
+            try {
+                return JSON.parse(data);
+            } catch (e) {
+                return this.getDefaultTreeData();
+            }
+        } else if (Array.isArray(data)) {
+            return data;
+        } else {
+            return this.getDefaultTreeData();
+        }
+    }
+    
+    getDefaultTreeData() {
+        return [
+            {
+                text: 'Documents',
+                expanded: true,
+                icon: '📁',
+                children: [
+                    { text: 'file1.txt', expanded: false, icon: '📄' },
+                    { text: 'file2.txt', expanded: false, icon: '📄' }
+                ]
+            }
+        ];
+    }
+    
+    addTreeNode() {
+        const newNode = {
+            text: 'New Node',
+            expanded: false,
+            icon: '📄',
+            children: []
+        };
+        
+        if (this.selectedTreeNode) {
+            // Add as sibling to selected node
+            const parentArray = this.findParentArray(this.currentTreeData, this.selectedTreeNode);
+            if (parentArray) {
+                const index = parentArray.indexOf(this.selectedTreeNode);
+                parentArray.splice(index + 1, 0, newNode);
+            }
+        } else {
+            // Add to root level
+            this.currentTreeData.push(newNode);
+        }
+        
+        this.renderTreePreview();
+        this.selectTreeNode(newNode);
+    }
+    
+    addChildNode() {
+        if (!this.selectedTreeNode) return;
+        
+        const newChild = {
+            text: 'New Child',
+            expanded: false,
+            icon: '📄',
+            children: []
+        };
+        
+        if (!this.selectedTreeNode.children) {
+            this.selectedTreeNode.children = [];
+        }
+        
+        this.selectedTreeNode.children.push(newChild);
+        this.selectedTreeNode.expanded = true;
+        
+        this.renderTreePreview();
+        this.selectTreeNode(newChild);
+    }
+    
+    deleteTreeNode() {
+        if (!this.selectedTreeNode) return;
+        
+        const parentArray = this.findParentArray(this.currentTreeData, this.selectedTreeNode);
+        if (parentArray) {
+            const index = parentArray.indexOf(this.selectedTreeNode);
+            parentArray.splice(index, 1);
+            this.selectedTreeNode = null;
+            this.hideNodeEditor();
+            this.renderTreePreview();
+        }
+    }
+    
+    moveNodeUp() {
+        if (!this.selectedTreeNode) return;
+        
+        const parentArray = this.findParentArray(this.currentTreeData, this.selectedTreeNode);
+        if (parentArray) {
+            const index = parentArray.indexOf(this.selectedTreeNode);
+            if (index > 0) {
+                [parentArray[index], parentArray[index - 1]] = [parentArray[index - 1], parentArray[index]];
+                this.renderTreePreview();
+            }
+        }
+    }
+    
+    moveNodeDown() {
+        if (!this.selectedTreeNode) return;
+        
+        const parentArray = this.findParentArray(this.currentTreeData, this.selectedTreeNode);
+        if (parentArray) {
+            const index = parentArray.indexOf(this.selectedTreeNode);
+            if (index < parentArray.length - 1) {
+                [parentArray[index], parentArray[index + 1]] = [parentArray[index + 1], parentArray[index]];
+                this.renderTreePreview();
+            }
+        }
+    }
+    
+    findParentArray(data, targetNode) {
+        for (let i = 0; i < data.length; i++) {
+            if (data[i] === targetNode) {
+                return data;
+            }
+            if (data[i].children) {
+                const result = this.findParentArray(data[i].children, targetNode);
+                if (result) return result;
+            }
+        }
+        return null;
+    }
+    
+    selectTreeNode(node) {
+        this.selectedTreeNode = node;
+        this.showNodeEditor();
+        this.renderTreePreview();
+        
+        // Update node editor fields
+        document.getElementById('nodeText').value = node.text || '';
+        document.getElementById('nodeExpanded').checked = node.expanded || false;
+        document.getElementById('nodeIcon').value = node.icon || '';
+    }
+    
+    showNodeEditor() {
+        document.getElementById('nodeEditor').style.display = 'block';
+    }
+    
+    hideNodeEditor() {
+        document.getElementById('nodeEditor').style.display = 'none';
+    }
+    
+    updateSelectedNode() {
+        if (!this.selectedTreeNode) return;
+        
+        this.selectedTreeNode.text = document.getElementById('nodeText').value;
+        this.selectedTreeNode.expanded = document.getElementById('nodeExpanded').checked;
+        this.selectedTreeNode.icon = document.getElementById('nodeIcon').value;
+        
+        this.renderTreePreview();
+    }
+    
+    renderTreePreview() {
+        const preview = document.getElementById('treePreview');
+        preview.innerHTML = '';
+        
+        this.renderTreeNodes(this.currentTreeData, preview, 0);
+    }
+    
+    renderTreeNodes(nodes, container, level) {
+        nodes.forEach(node => {
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'tree-node';
+            if (node === this.selectedTreeNode) {
+                nodeDiv.classList.add('selected');
+            }
+            
+            nodeDiv.style.marginLeft = (level * 20) + 'px';
+            
+            const toggle = document.createElement('button');
+            toggle.className = 'tree-node-toggle';
+            toggle.textContent = node.children && node.children.length > 0 ? 
+                (node.expanded ? '▼' : '▶') : ' ';
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                node.expanded = !node.expanded;
+                this.renderTreePreview();
+            });
+            
+            const content = document.createElement('div');
+            content.className = 'tree-node-content';
+            
+            const icon = document.createElement('span');
+            icon.className = 'tree-node-icon';
+            icon.textContent = node.icon || '📄';
+            
+            const text = document.createElement('span');
+            text.className = 'tree-node-text';
+            text.textContent = node.text || 'Unnamed';
+            
+            content.appendChild(icon);
+            content.appendChild(text);
+            
+            nodeDiv.appendChild(toggle);
+            nodeDiv.appendChild(content);
+            
+            nodeDiv.addEventListener('click', () => {
+                this.selectTreeNode(node);
+            });
+            
+            container.appendChild(nodeDiv);
+            
+            if (node.expanded && node.children && node.children.length > 0) {
+                this.renderTreeNodes(node.children, container, level + 1);
+            }
+        });
+    }
+    
+    generateSampleTree() {
+        this.currentTreeData = [
+            {
+                text: 'Documents',
+                expanded: true,
+                icon: '📁',
+                children: [
+                    {
+                        text: 'Projects',
+                        expanded: false,
+                        icon: '📁',
+                        children: [
+                            { text: 'PixelUI', expanded: true, icon: '📁', children: [
+                                { text: 'pixelui.lua', icon: '📄' },
+                                { text: 'example.lua', icon: '📄' },
+                                { text: 'README.md', icon: '📄' }
+                            ]},
+                            { text: 'OtherProject.lua', icon: '📄' }
+                        ]
+                    },
+                    { text: 'Reports.txt', icon: '📄' },
+                    { text: 'Notes.md', icon: '📄' }
+                ]
+            },
+            {
+                text: 'Pictures',
+                expanded: false,
+                icon: '📁',
+                children: [
+                    { text: 'vacation.jpg', icon: '🖼️' },
+                    { text: 'screenshot.png', icon: '🖼️' }
+                ]
+            }
+        ];
+        
+        this.renderTreePreview();
+    }
+    
+    applyTreeDesign() {
+        const element = this.currentTreeElement;
+        const property = this.currentTreeProperty;
+        
+        // Apply tree settings
+        const showLines = document.getElementById('treeShowLines').checked;
+        const showRoot = document.getElementById('treeShowRoot').checked;
+        const expandable = document.getElementById('treeExpandable').checked;
+        const selectable = document.getElementById('treeSelectable').checked;
+        
+        element.properties.showLines = showLines;
+        element.properties.showRoot = showRoot;
+        element.properties.expandable = expandable;
+        element.properties.selectable = selectable;
+        
+        // Set the tree data
+        element.properties[property] = this.currentTreeData;
+        
+        // Update element on canvas
+        const elementDiv = document.querySelector(`[data-element-id="${element.id}"]`);
+        if (elementDiv) {
+            this.updateElementDiv(elementDiv, element);
+        }
+        
+        // Update properties panel
+        if (this.selectedElement && this.selectedElement.id === element.id) {
+            this.updatePropertiesPanel();
+        }
+        
+        this.hideModal('treeDesignerModal');
+    }
+    
+    cancelTreeDesign() {
+        this.hideModal('treeDesignerModal');
+    }
+    
+    resetTreeData() {
+        this.currentTreeData = this.getDefaultTreeData();
+        this.selectedTreeNode = null;
+        this.hideNodeEditor();
+        this.renderTreePreview();
     }
 
     generatePixelUICode() {
@@ -2392,6 +3493,18 @@ class UIDesigner {
                 pixelUIFunctionName = 'codeEditor';
             } else if (element.type === 'ColorPicker') {
                 pixelUIFunctionName = 'colorPicker';
+            } else if (element.type === 'RadioButton') {
+                pixelUIFunctionName = 'radioButton';
+            } else if (element.type === 'ToggleSwitch') {
+                pixelUIFunctionName = 'toggleSwitch';
+            } else if (element.type === 'RangeSlider') {
+                pixelUIFunctionName = 'rangeSlider';
+            } else if (element.type === 'LoadingIndicator') {
+                pixelUIFunctionName = 'loadingIndicator';
+            } else if (element.type === 'TreeView') {
+                pixelUIFunctionName = 'treeView';
+            } else if (element.type === 'NumericUpDown') {
+                pixelUIFunctionName = 'numericUpDown';
             }
             
             code += `local ${varName} = PixelUI.${pixelUIFunctionName}({\n`;
@@ -2503,31 +3616,26 @@ class UIDesigner {
             code += `-- ${element.type} element\n`;
             code += `local ${varName} = main:add${element.type}()\n`;
             
-            // Add properties using existing basalt property methods
-            let positionSet = false;
-            let sizeSet = false;
+            // Handle position (x, y) together
+            const x = element.properties.x;
+            const y = element.properties.y;
+            if (x !== elementDef.defaultProps.x || y !== elementDef.defaultProps.y) {
+                code += `    :setPosition(${x}, ${y})\n`;
+            }
             
+            // Handle size (width, height) together
+            const width = element.properties.width;
+            const height = element.properties.height;
+            if (width !== elementDef.defaultProps.width || height !== elementDef.defaultProps.height) {
+                code += `    :setSize(${width}, ${height})\n`;
+            }
+            
+            // Add other properties
             Object.entries(element.properties).forEach(([key, value]) => {
+                // Skip x, y, width, height as they're handled above
+                if (['x', 'y', 'width', 'height'].includes(key)) return;
+                
                 if (elementDef.defaultProps[key] !== value) {
-                    // Special handling for position and size
-                    if (key === 'x' || key === 'y') {
-                        if (!positionSet) {
-                            const x = element.properties.x || 1;
-                            const y = element.properties.y || 1;
-                            code += `    :setPosition(${x}, ${y})\n`;
-                            positionSet = true;
-                        }
-                        return; // Skip individual x/y processing
-                    } else if (key === 'width' || key === 'height') {
-                        if (!sizeSet) {
-                            const width = element.properties.width || 10;
-                            const height = element.properties.height || 5;
-                            code += `    :setSize(${width}, ${height})\n`;
-                            sizeSet = true;
-                        }
-                        return; // Skip individual width/height processing
-                    }
-                    
                     const propertyMethod = this.getBasaltPropertyMethod(key);
                     if (propertyMethod) {
                         if (typeof value === 'string' && (key.includes('Color') || key === 'background' || key === 'foreground')) {
@@ -2542,14 +3650,16 @@ class UIDesigner {
                             if (value.length === 0) {
                                 code += `    :${propertyMethod}({})\n`;
                             } else {
-                                // Use convertToLuaTable for each array item to handle objects properly
-                                const items = value.map(v => this.convertToLuaTable(v));
-                                code += `    :${propertyMethod}({${items.join(', ')}})\n`;
+                                const items = value.map(v => {
+                                    if (typeof v === 'string') {
+                                        return `"${v}"`;
+                                    } else if (typeof v === 'object' && v.text) {
+                                        return `"${v.text}"`;
+                                    }
+                                    return `"${v}"`;
+                                }).join(', ');
+                                code += `    :${propertyMethod}({${items}})\n`;
                             }
-                        } else if (typeof value === 'object' && value !== null) {
-                            // Handle objects (like chart data)
-                            const luaTable = this.convertToLuaTable(value);
-                            code += `    :${propertyMethod}(${luaTable})\n`;
                         } else {
                             code += `    :${propertyMethod}(${value})\n`;
                         }
@@ -2561,7 +3671,7 @@ class UIDesigner {
         });
         
         code += '-- Start the UI\n';
-        code += 'basalt.autoUpdate()';
+        code += 'basalt.run()';
         
         return code;
     }
@@ -2573,11 +3683,606 @@ class UIDesigner {
             foreground: 'setForeground',
             visible: 'setVisible',
             zIndex: 'setZIndex',
-            series: 'setSeries',
-            minValue: 'setMinValue',
-            maxValue: 'setMaxValue'
+            placeholder: 'setPlaceholder',
+            checked: 'setChecked',
+            checkedText: 'setCheckedText',
+            autoSize: 'setAutoSize',
+            items: 'setItems',
+            progress: 'setProgress',
+            showPercentage: 'setShowPercentage',
+            progressColor: 'setProgressColor',
+            step: 'setStep',
+            max: 'setMax',
+            horizontal: 'setHorizontal',
+            barColor: 'setBarColor',
+            sliderColor: 'setSliderColor',
+            maxLength: 'setMaxLength',
+            focusedBackground: 'setFocusedBackground',
+            focusedForeground: 'setFocusedForeground',
+            placeholderColor: 'setPlaceholderColor'
         };
         return methodMap[key] || `set${key.charAt(0).toUpperCase() + key.slice(1)}`;
+    }
+    
+    generatePrimeUICode() {
+        // Get selected components first
+        const usedComponents = new Set();
+        const sortedElements = Array.from(this.elements.values()).sort((a, b) => {
+            const aZ = a.properties.z || 0;
+            const bZ = b.properties.z || 0;
+            return aZ - bZ;
+        });
+        
+        // Collect all used component types
+        sortedElements.forEach(element => {
+            usedComponents.add(element.type.toLowerCase());
+        });
+        
+        let code = '-- PrimeUI Generated Code with Built-in Components\n';
+        code += '-- Generated by XCC Designer - No external dependencies needed!\n\n';
+        
+        // Add the built-in PrimeUI components
+        code += this.generatePrimeUIBundledCode(usedComponents);
+        
+        code += '-- Initialize and clear screen\n';
+        code += 'term.clear()\n';
+        code += 'term.setCursorPos(1, 1)\n\n';
+        
+        code += '-- Create main window\n';
+        code += 'local win = term.current()\n\n';
+        
+        // Add element creation
+        sortedElements.forEach((element, index) => {
+            const varName = `element${index + 1}`;
+            const elementType = element.type;
+            
+            // Helper function to ensure valid coordinates
+            const sanitizeCoord = (coord) => {
+                const num = Number(coord);
+                return (isNaN(num) || num < 1) ? 1 : Math.floor(num);
+            };
+            
+            const safeX = sanitizeCoord(element.properties.x);
+            const safeY = sanitizeCoord(element.properties.y);
+            const safeWidth = sanitizeCoord(element.properties.width) || 1;
+            const safeHeight = sanitizeCoord(element.properties.height) || 1;
+            
+            code += `-- ${elementType} element\n`;
+            
+            // Generate function call based on element type
+            switch (elementType) {
+                case 'Button':
+                    code += `local ${varName} = PrimeUI.button(win, ${safeX}, ${safeY}, "${element.properties.text}", function() end`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'lightGray') code += `, colors.${element.properties.bgColor}`;
+                    if (element.properties.clickedColor !== 'gray') code += `, colors.${element.properties.clickedColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'Label':
+                    code += `PrimeUI.label(win, ${safeX}, ${safeY}, "${element.properties.text}"`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'CenterLabel':
+                    code += `PrimeUI.centerLabel(win, ${safeX}, ${safeY}, ${safeWidth}, "${element.properties.text}"`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'InputBox':
+                    code += `PrimeUI.inputBox(win, ${safeX}, ${safeY}, ${safeWidth}, function(text) end`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    if (element.properties.replacement) code += `, "${element.properties.replacement}"`;
+                    code += ')\n';
+                    break;
+                    
+                case 'ProgressBar':
+                    code += `local ${varName} = PrimeUI.progressBar(win, ${safeX}, ${safeY}, ${safeWidth}`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    if (element.properties.useShade !== false) code += `, ${element.properties.useShade}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'SelectionBox':
+                    const entries = Array.isArray(element.properties.entries) ? 
+                        element.properties.entries.map(e => `"${e}"`).join(', ') : '"Option 1", "Option 2"';
+                    code += `PrimeUI.selectionBox(win, ${safeX}, ${safeY}, ${safeWidth}, ${safeHeight}, {${entries}}, function(selection) end`;
+                    if (element.properties.fgColor !== 'white') code += `, nil, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'CheckSelectionBox':
+                    const selections = element.properties.selections || {};
+                    const selectionsStr = Object.entries(selections).map(([k, v]) => `["${k}"] = ${v}`).join(', ');
+                    code += `PrimeUI.checkSelectionBox(win, ${safeX}, ${safeY}, ${safeWidth}, ${safeHeight}, {${selectionsStr}}, function(selections) end`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'ScrollBox':
+                    code += `local ${varName} = PrimeUI.scrollBox(win, ${safeX}, ${safeY}, ${safeWidth}, ${safeHeight}, ${element.properties.innerHeight || safeHeight * 2}`;
+                    if (element.properties.allowArrowKeys !== true) code += `, ${element.properties.allowArrowKeys}`;
+                    if (element.properties.showScrollIndicators !== false) code += `, ${element.properties.showScrollIndicators}`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'TextBox':
+                    code += `local ${varName} = PrimeUI.textBox(win, ${safeX}, ${safeY}, ${safeWidth}, ${safeHeight}, "${element.properties.text}"`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'BorderBox':
+                    code += `PrimeUI.borderBox(win, ${safeX}, ${safeY}, ${safeWidth}, ${safeHeight}`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'HorizontalLine':
+                    code += `PrimeUI.horizontalLine(win, ${safeX}, ${safeY}, ${safeWidth}`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'DrawText':
+                    code += `PrimeUI.drawText(win, "${element.properties.text}", ${element.properties.resizeToFit}`;
+                    if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
+                    if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
+                    code += ')\n';
+                    break;
+                    
+                case 'DrawImage':
+                    code += `PrimeUI.drawImage(win, ${safeX}, ${safeY}, "${element.properties.data}", ${element.properties.index}, ${element.properties.setPalette})\n`;
+                    break;
+                    
+                default:
+                    code += `-- ${elementType} (custom implementation needed)\n`;
+                    break;
+            }
+            
+            code += '\n';
+        });
+        
+        code += '-- Start the main loop\n';
+        code += 'PrimeUI.run()\n';
+        
+        return code;
+    }
+    
+    generatePrimeUIBundledCode(usedComponents) {
+        let code = '-- PrimeUI Component Library (Auto-bundled)\n';
+        code += '-- Only includes components used in your design\n\n';
+        
+        // Always include the core PrimeUI framework
+        code += '-- PrimeUI Core Framework\n';
+        code += 'local PrimeUI = {}\n';
+        code += 'do\n';
+        code += '    local coros = {}\n';
+        code += '    local restoreCursor\n\n';
+        
+        code += '    function PrimeUI.addTask(func)\n';
+        code += '        local t = {coro = coroutine.create(func)}\n';
+        code += '        coros[#coros+1] = t\n';
+        code += '        _, t.filter = coroutine.resume(t.coro)\n';
+        code += '    end\n\n';
+        
+        code += '    function PrimeUI.resolve(...)\n';
+        code += '        coroutine.yield(coros, ...)\n';
+        code += '    end\n\n';
+        
+        code += '    function PrimeUI.clear()\n';
+        code += '        term.setCursorPos(1, 1)\n';
+        code += '        term.setCursorBlink(false)\n';
+        code += '        term.setBackgroundColor(colors.black)\n';
+        code += '        term.setTextColor(colors.white)\n';
+        code += '        term.clear()\n';
+        code += '        coros = {}\n';
+        code += '        restoreCursor = nil\n';
+        code += '    end\n\n';
+        
+        code += '    function PrimeUI.setCursorWindow(win)\n';
+        code += '        restoreCursor = win and win.restoreCursor\n';
+        code += '    end\n\n';
+        
+        code += '    function PrimeUI.getWindowPos(win, x, y)\n';
+        code += '        if win == term then return x, y end\n';
+        code += '        while win ~= term.native() and win ~= term.current() do\n';
+        code += '            if not win.getPosition then return x, y end\n';
+        code += '            local wx, wy = win.getPosition()\n';
+        code += '            x, y = x + wx - 1, y + wy - 1\n';
+        code += '            _, win = debug.getupvalue(select(2, debug.getupvalue(win.isColor, 1)), 1)\n';
+        code += '        end\n';
+        code += '        return x, y\n';
+        code += '    end\n\n';
+        
+        code += '    function PrimeUI.run()\n';
+        code += '        while true do\n';
+        code += '            if restoreCursor then restoreCursor() end\n';
+        code += '            local ev = table.pack(os.pullEvent())\n';
+        code += '            for _, v in ipairs(coros) do\n';
+        code += '                if v.filter == nil or v.filter == ev[1] then\n';
+        code += '                    local res = table.pack(coroutine.resume(v.coro, table.unpack(ev, 1, ev.n)))\n';
+        code += '                    if not res[1] then error(res[2], 2) end\n';
+        code += '                    if res[2] == coros then return table.unpack(res, 3, res.n) end\n';
+        code += '                    v.filter = res[2]\n';
+        code += '                end\n';
+        code += '            end\n';
+        code += '        end\n';
+        code += '    end\n';
+        code += 'end\n\n';
+        
+        // Add components based on usage
+        if (usedComponents.has('button')) {
+            code += '-- Button Component\n';
+            code += 'function PrimeUI.button(win, x, y, text, action, fgColor, bgColor, clickedColor, periphName)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.lightGray\n';
+            code += '    clickedColor = clickedColor or colors.gray\n';
+            code += '    win.setCursorPos(x, y)\n';
+            code += '    win.setBackgroundColor(bgColor)\n';
+            code += '    win.setTextColor(fgColor)\n';
+            code += '    win.write(" " .. text .. " ")\n';
+            code += '    PrimeUI.addTask(function()\n';
+            code += '        local screenX, screenY = PrimeUI.getWindowPos(win, x, y)\n';
+            code += '        local buttonDown = false\n';
+            code += '        while true do\n';
+            code += '            local event, button, clickX, clickY = os.pullEvent()\n';
+            code += '            if event == "mouse_click" and periphName == nil and button == 1 and clickX >= screenX and clickX < screenX + #text + 2 and clickY == screenY then\n';
+            code += '                buttonDown = true\n';
+            code += '                win.setCursorPos(x, y)\n';
+            code += '                win.setBackgroundColor(clickedColor)\n';
+            code += '                win.setTextColor(fgColor)\n';
+            code += '                win.write(" " .. text .. " ")\n';
+            code += '            elseif (event == "monitor_touch" and periphName == button and clickX >= screenX and clickX < screenX + #text + 2 and clickY == screenY) or (event == "mouse_up" and button == 1 and buttonDown) then\n';
+            code += '                if clickX >= screenX and clickX < screenX + #text + 2 and clickY == screenY then\n';
+            code += '                    if type(action) == "string" then PrimeUI.resolve("button", action) else action() end\n';
+            code += '                end\n';
+            code += '                win.setCursorPos(x, y)\n';
+            code += '                win.setBackgroundColor(bgColor)\n';
+            code += '                win.setTextColor(fgColor)\n';
+            code += '                win.write(" " .. text .. " ")\n';
+            code += '                buttonDown = false\n';
+            code += '            end\n';
+            code += '        end\n';
+            code += '    end)\n';
+            code += 'end\n\n';
+        }
+        
+        if (usedComponents.has('label')) {
+            code += '-- Label Component\n';
+            code += 'function PrimeUI.label(win, x, y, text, fgColor, bgColor)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    win.setCursorPos(x, y)\n';
+            code += '    win.setTextColor(fgColor)\n';
+            code += '    win.setBackgroundColor(bgColor)\n';
+            code += '    win.write(text)\n';
+            code += 'end\n\n';
+        }
+        
+        if (usedComponents.has('centerlabel')) {
+            code += '-- Center Label Component\n';
+            code += 'function PrimeUI.centerLabel(win, x, y, width, text, fgColor, bgColor)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    local textX = x + math.floor((width - #text) / 2)\n';
+            code += '    win.setCursorPos(textX, y)\n';
+            code += '    win.setTextColor(fgColor)\n';
+            code += '    win.setBackgroundColor(bgColor)\n';
+            code += '    win.write(text)\n';
+            code += 'end\n\n';
+        }
+        
+        if (usedComponents.has('inputbox')) {
+            code += '-- Input Box Component\n';
+            code += 'function PrimeUI.inputBox(win, x, y, width, action, fgColor, bgColor, replacement, history, completion, default)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    local box = window.create(win, x, y, width, 1)\n';
+            code += '    box.setTextColor(fgColor)\n';
+            code += '    box.setBackgroundColor(bgColor)\n';
+            code += '    box.clear()\n';
+            code += '    PrimeUI.addTask(function()\n';
+            code += '        local coro = coroutine.create(read)\n';
+            code += '        local old = term.redirect(box)\n';
+            code += '        local ok, res = coroutine.resume(coro, replacement, history, completion, default)\n';
+            code += '        term.redirect(old)\n';
+            code += '        while coroutine.status(coro) ~= "dead" do\n';
+            code += '            local ev = table.pack(os.pullEvent())\n';
+            code += '            old = term.redirect(box)\n';
+            code += '            ok, res = coroutine.resume(coro, table.unpack(ev, 1, ev.n))\n';
+            code += '            term.redirect(old)\n';
+            code += '            if not ok then error(res) end\n';
+            code += '        end\n';
+            code += '        if type(action) == "string" then PrimeUI.resolve("inputBox", action, res) else action(res) end\n';
+            code += '        while true do os.pullEvent() end\n';
+            code += '    end)\n';
+            code += 'end\n\n';
+        }
+        
+        if (usedComponents.has('progressbar')) {
+            code += '-- Progress Bar Component\n';
+            code += 'function PrimeUI.progressBar(win, x, y, width, fgColor, bgColor, useShade)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    local progress = 0\n';
+            code += '    local function redraw()\n';
+            code += '        win.setCursorPos(x, y)\n';
+            code += '        win.setBackgroundColor(bgColor)\n';
+            code += '        local filled = math.floor(progress * width)\n';
+            code += '        for i = 1, width do\n';
+            code += '            if i <= filled then\n';
+            code += '                win.setBackgroundColor(fgColor)\n';
+            code += '            else\n';
+            code += '                win.setBackgroundColor(bgColor)\n';
+            code += '            end\n';
+            code += '            win.write(" ")\n';
+            code += '        end\n';
+            code += '    end\n';
+            code += '    redraw()\n';
+            code += '    return function(p) progress = p redraw() end\n';
+            code += 'end\n\n';
+        }
+        
+        if (usedComponents.has('borderbox')) {
+            code += '-- Border Box Component\n';
+            code += 'function PrimeUI.borderBox(win, x, y, width, height, fgColor, bgColor)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    win.setTextColor(fgColor)\n';
+            code += '    win.setBackgroundColor(bgColor)\n';
+            code += '    -- Top and bottom borders\n';
+            code += '    for i = x, x + width - 1 do\n';
+            code += '        win.setCursorPos(i, y)\n';
+            code += '        win.write("-")\n';
+            code += '        win.setCursorPos(i, y + height - 1)\n';
+            code += '        win.write("-")\n';
+            code += '    end\n';
+            code += '    -- Left and right borders\n';
+            code += '    for i = y, y + height - 1 do\n';
+            code += '        win.setCursorPos(x, i)\n';
+            code += '        win.write("|")\n';
+            code += '        win.setCursorPos(x + width - 1, i)\n';
+            code += '        win.write("|")\n';
+            code += '    end\n';
+            code += '    -- Corners\n';
+            code += '    win.setCursorPos(x, y)\n';
+            code += '    win.write("+")\n';
+            code += '    win.setCursorPos(x + width - 1, y)\n';
+            code += '    win.write("+")\n';
+            code += '    win.setCursorPos(x, y + height - 1)\n';
+            code += '    win.write("+")\n';
+            code += '    win.setCursorPos(x + width - 1, y + height - 1)\n';
+            code += '    win.write("+")\n';
+            code += 'end\n\n';
+        }
+        
+        if (usedComponents.has('horizontalline')) {
+            code += '-- Horizontal Line Component\n';
+            code += 'function PrimeUI.horizontalLine(win, x, y, width, fgColor, bgColor)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    win.setCursorPos(x, y)\n';
+            code += '    win.setTextColor(fgColor)\n';
+            code += '    win.setBackgroundColor(bgColor)\n';
+            code += '    win.write(string.rep("-", width))\n';
+            code += 'end\n\n';
+        }
+        
+        // Add more components as needed...
+        if (usedComponents.has('selectionbox')) {
+            code += '-- Selection Box Component\n';
+            code += 'function PrimeUI.selectionBox(win, x, y, width, height, entries, action, selectChangeAction, fgColor, bgColor)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    local selected = 1\n';
+            code += '    local scroll = 0\n';
+            code += '    local function redraw()\n';
+            code += '        for i = 1, height do\n';
+            code += '            win.setCursorPos(x, y + i - 1)\n';
+            code += '            win.setBackgroundColor(bgColor)\n';
+            code += '            win.setTextColor(fgColor)\n';
+            code += '            local idx = i + scroll\n';
+            code += '            if entries[idx] then\n';
+            code += '                local text = entries[idx]\n';
+            code += '                if idx == selected then\n';
+            code += '                    win.setBackgroundColor(fgColor)\n';
+            code += '                    win.setTextColor(bgColor)\n';
+            code += '                end\n';
+            code += '                win.write(string.sub(text .. string.rep(" ", width), 1, width))\n';
+            code += '            else\n';
+            code += '                win.write(string.rep(" ", width))\n';
+            code += '            end\n';
+            code += '        end\n';
+            code += '    end\n';
+            code += '    redraw()\n';
+            code += '    PrimeUI.addTask(function()\n';
+            code += '        while true do\n';
+            code += '            local event, key = os.pullEvent("key")\n';
+            code += '            if key == keys.up and selected > 1 then\n';
+            code += '                selected = selected - 1\n';
+            code += '                if selected <= scroll then scroll = selected - 1 end\n';
+            code += '                redraw()\n';
+            code += '                if selectChangeAction then selectChangeAction(selected) end\n';
+            code += '            elseif key == keys.down and selected < #entries then\n';
+            code += '                selected = selected + 1\n';
+            code += '                if selected > scroll + height then scroll = selected - height end\n';
+            code += '                redraw()\n';
+            code += '                if selectChangeAction then selectChangeAction(selected) end\n';
+            code += '            elseif key == keys.enter then\n';
+            code += '                if type(action) == "string" then PrimeUI.resolve("selectionBox", action, selected) else action(selected) end\n';
+            code += '            end\n';
+            code += '        end\n';
+            code += '    end)\n';
+            code += 'end\n\n';
+        }
+        
+        if (usedComponents.has('textbox')) {
+            code += '-- Text Box Component\n';
+            code += 'function PrimeUI.textBox(win, x, y, width, height, text, fgColor, bgColor)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    local lines = {}\n';
+            code += '    local words = {}\n';
+            code += '    for word in text:gmatch("%S+") do\n';
+            code += '        table.insert(words, word)\n';
+            code += '    end\n';
+            code += '    local currentLine = ""\n';
+            code += '    for _, word in ipairs(words) do\n';
+            code += '        if #currentLine + #word + 1 <= width then\n';
+            code += '            currentLine = currentLine .. (currentLine == "" and "" or " ") .. word\n';
+            code += '        else\n';
+            code += '            table.insert(lines, currentLine)\n';
+            code += '            currentLine = word\n';
+            code += '        end\n';
+            code += '    end\n';
+            code += '    if currentLine ~= "" then table.insert(lines, currentLine) end\n';
+            code += '    win.setTextColor(fgColor)\n';
+            code += '    win.setBackgroundColor(bgColor)\n';
+            code += '    for i = 1, height do\n';
+            code += '        win.setCursorPos(x, y + i - 1)\n';
+            code += '        local line = lines[i] or ""\n';
+            code += '        win.write(string.sub(line .. string.rep(" ", width), 1, width))\n';
+            code += '    end\n';
+            code += '    return function(newText)\n';
+            code += '        text = newText\n';
+            code += '        lines = {}\n';
+            code += '        words = {}\n';
+            code += '        for word in text:gmatch("%S+") do table.insert(words, word) end\n';
+            code += '        currentLine = ""\n';
+            code += '        for _, word in ipairs(words) do\n';
+            code += '            if #currentLine + #word + 1 <= width then\n';
+            code += '                currentLine = currentLine .. (currentLine == "" and "" or " ") .. word\n';
+            code += '            else\n';
+            code += '                table.insert(lines, currentLine)\n';
+            code += '                currentLine = word\n';
+            code += '            end\n';
+            code += '        end\n';
+            code += '        if currentLine ~= "" then table.insert(lines, currentLine) end\n';
+            code += '        for i = 1, height do\n';
+            code += '            win.setCursorPos(x, y + i - 1)\n';
+            code += '            local line = lines[i] or ""\n';
+            code += '            win.write(string.sub(line .. string.rep(" ", width), 1, width))\n';
+            code += '        end\n';
+            code += '    end\n';
+            code += 'end\n\n';
+        }
+        
+        if (usedComponents.has('checkselectionbox')) {
+            code += '-- Check Selection Box Component\n';
+            code += 'function PrimeUI.checkSelectionBox(win, x, y, width, height, selections, action, fgColor, bgColor)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    local selectedIndex = 1\n';
+            code += '    local scroll = 0\n';
+            code += '    local function redraw()\n';
+            code += '        for i = 1, height do\n';
+            code += '            win.setCursorPos(x, y + i - 1)\n';
+            code += '            win.setBackgroundColor(bgColor)\n';
+            code += '            win.setTextColor(fgColor)\n';
+            code += '            local idx = i + scroll\n';
+            code += '            local keys = {}\n';
+            code += '            for k in pairs(selections) do table.insert(keys, k) end\n';
+            code += '            if keys[idx] then\n';
+            code += '                local text = keys[idx]\n';
+            code += '                local checked = selections[text] and "X" or " "\n';
+            code += '                local prefix = "[" .. checked .. "] "\n';
+            code += '                if idx == selectedIndex then\n';
+            code += '                    win.setBackgroundColor(fgColor)\n';
+            code += '                    win.setTextColor(bgColor)\n';
+            code += '                end\n';
+            code += '                win.write(string.sub(prefix .. text .. string.rep(" ", width), 1, width))\n';
+            code += '            else\n';
+            code += '                win.write(string.rep(" ", width))\n';
+            code += '            end\n';
+            code += '        end\n';
+            code += '    end\n';
+            code += '    redraw()\n';
+            code += '    PrimeUI.addTask(function()\n';
+            code += '        while true do\n';
+            code += '            local event, key = os.pullEvent("key")\n';
+            code += '            local keys = {}\n';
+            code += '            for k in pairs(selections) do table.insert(keys, k) end\n';
+            code += '            if key == keys.up and selectedIndex > 1 then\n';
+            code += '                selectedIndex = selectedIndex - 1\n';
+            code += '                if selectedIndex <= scroll then scroll = selectedIndex - 1 end\n';
+            code += '                redraw()\n';
+            code += '            elseif key == keys.down and selectedIndex < #keys then\n';
+            code += '                selectedIndex = selectedIndex + 1\n';
+            code += '                if selectedIndex > scroll + height then scroll = selectedIndex - height end\n';
+            code += '                redraw()\n';
+            code += '            elseif key == keys.space then\n';
+            code += '                local text = keys[selectedIndex]\n';
+            code += '                if text then\n';
+            code += '                    selections[text] = not selections[text]\n';
+            code += '                    redraw()\n';
+            code += '                    if type(action) == "string" then PrimeUI.resolve("checkSelectionBox", action, selections) else action(selections) end\n';
+            code += '                end\n';
+            code += '            end\n';
+            code += '        end\n';
+            code += '    end)\n';
+            code += 'end\n\n';
+        }
+        
+        if (usedComponents.has('scrollbox')) {
+            code += '-- Scroll Box Component\n';
+            code += 'function PrimeUI.scrollBox(win, x, y, width, height, innerHeight, allowArrowKeys, showScrollIndicators, fgColor, bgColor)\n';
+            code += '    fgColor = fgColor or colors.white\n';
+            code += '    bgColor = bgColor or colors.black\n';
+            code += '    allowArrowKeys = allowArrowKeys ~= false\n';
+            code += '    showScrollIndicators = showScrollIndicators == true\n';
+            code += '    local actualWidth = showScrollIndicators and width - 1 or width\n';
+            code += '    local scroll = 0\n';
+            code += '    local innerWin = window.create(win, x, y - scroll, actualWidth, innerHeight)\n';
+            code += '    innerWin.setBackgroundColor(bgColor)\n';
+            code += '    innerWin.setTextColor(fgColor)\n';
+            code += '    innerWin.clear()\n';
+            code += '    if showScrollIndicators then\n';
+            code += '        win.setBackgroundColor(bgColor)\n';
+            code += '        win.setTextColor(fgColor)\n';
+            code += '        for i = 1, height do\n';
+            code += '            win.setCursorPos(x + width - 1, y + i - 1)\n';
+            code += '            if i == 1 and scroll > 0 then\n';
+            code += '                win.write("^")\n';
+            code += '            elseif i == height and scroll < innerHeight - height then\n';
+            code += '                win.write("v")\n';
+            code += '            else\n';
+            code += '                win.write("|")\n';
+            code += '            end\n';
+            code += '        end\n';
+            code += '    end\n';
+            code += '    if allowArrowKeys then\n';
+            code += '        PrimeUI.addTask(function()\n';
+            code += '            while true do\n';
+            code += '                local event, key = os.pullEvent("key")\n';
+            code += '                if key == keys.up and scroll > 0 then\n';
+            code += '                    scroll = scroll - 1\n';
+            code += '                    innerWin.reposition(x, y - scroll)\n';
+            code += '                elseif key == keys.down and scroll < innerHeight - height then\n';
+            code += '                    scroll = scroll + 1\n';
+            code += '                    innerWin.reposition(x, y - scroll)\n';
+            code += '                end\n';
+            code += '            end\n';
+            code += '        end)\n';
+            code += '    end\n';
+            code += '    return innerWin\n';
+            code += 'end\n\n';
+        }
+        
+        return code;
     }
     
     showPreviewModal() {
@@ -2609,6 +4314,10 @@ class UIDesigner {
             case 'xml':
                 code = this.generateXMLCode();
                 language = 'xml';
+                break;
+            case 'xcc':
+                code = this.generateXCCCode();
+                language = 'json';
                 break;
         }
         
@@ -2665,6 +4374,106 @@ class UIDesigner {
         return xml;
     }
     
+    generateXCCCode() {
+        /*
+         * XCC Format Specification v1.0
+         * 
+         * The .xcc format is a JSON-based file format specifically designed for
+         * the XCC (ComputerCraft GUI Designer) application. It includes:
+         * 
+         * - Format identification and version information
+         * - Project metadata (name, description, author)
+         * - Framework specification (basalt/pixelui)
+         * - Enhanced element data with metadata
+         * - Design information and timestamps
+         * 
+         * This format is optimized for round-trip editing in XCC and includes
+         * additional metadata not present in standard JSON exports.
+         */
+        
+        const data = {
+            // XCC Format Header
+            format: 'XCC',
+            version: '1.0',
+            created: new Date().toISOString(),
+            framework: this.currentFramework,
+            
+            // Project Information
+            project: {
+                name: 'Untitled Project',
+                description: 'Created with XCC Designer',
+                author: 'XCC User'
+            },
+            
+            // Terminal Configuration
+            terminal: {
+                width: this.terminalWidth,
+                height: this.terminalHeight,
+                title: `${this.currentFramework === 'basalt' ? 'Basalt' : 'PixelUI'} UI`
+            },
+            
+            // Element Data with Enhanced Information
+            elements: Array.from(this.elements.values()).map(element => {
+                const elementDef = this.currentFramework === 'basalt' ? 
+                    this.basaltElements[element.type] : 
+                    this.pixelUIElements[element.type];
+                
+                return {
+                    id: element.id,
+                    type: element.type,
+                    framework: this.currentFramework,
+                    properties: element.properties,
+                    children: element.children || [],
+                    // Add metadata for easier import
+                    metadata: {
+                        category: this.getElementCategory(element.type),
+                        defaultProps: elementDef ? elementDef.defaultProps : {},
+                        propertyGroups: elementDef ? elementDef.properties : {}
+                    }
+                };
+            }),
+            
+            // Design Metadata
+            design: {
+                elementCount: this.elements.size,
+                lastModified: new Date().toISOString(),
+                canvasSize: {
+                    width: this.terminalWidth,
+                    height: this.terminalHeight
+                }
+            }
+        };
+        
+        return JSON.stringify(data, null, 2);
+    }
+    
+    getElementCategory(elementType) {
+        if (this.currentFramework === 'basalt') {
+            if (['Frame', 'Container', 'Flexbox'].includes(elementType)) {
+                return 'Containers';
+            } else if (['Label', 'Button', 'Input', 'Checkbox', 'Radio', 'Switch'].includes(elementType)) {
+                return 'Basic';
+            } else if (['List', 'Dropdown', 'Menubar', 'Table', 'Tree'].includes(elementType)) {
+                return 'Advanced';
+            } else if (['Progressbar', 'Slider', 'Graph', 'Image'].includes(elementType)) {
+                return 'Display';
+            }
+        } else {
+            if (['Container'].includes(elementType)) {
+                return 'Containers';
+            } else if (['Label', 'Button', 'TextBox', 'CheckBox', 'RadioButton', 'ToggleSwitch', 'NumericUpDown'].includes(elementType)) {
+                return 'Basic';
+            } else if (['ListView', 'ComboBox', 'TabControl', 'TreeView', 'Accordion'].includes(elementType)) {
+                return 'Advanced';
+            } else if (['ProgressBar', 'Slider', 'RangeSlider', 'Chart', 'Canvas', 'ColorPicker', 'LoadingIndicator'].includes(elementType)) {
+                return 'Display';
+            } else if (['RichTextBox', 'CodeEditor'].includes(elementType)) {
+                return 'Editors';
+            }
+        }
+        return 'Basic';
+    }
+    
     copyExportCode() {
         const code = document.getElementById('exportCode').textContent;
         navigator.clipboard.writeText(code).then(() => {
@@ -2681,7 +4490,7 @@ class UIDesigner {
         const exportType = document.querySelector('input[name="exportType"]:checked').value;
         const code = document.getElementById('exportCode').textContent;
         
-        const extensions = { lua: 'lua', json: 'json', xml: 'xml' };
+        const extensions = { lua: 'lua', json: 'json', xml: 'xml', xcc: 'xcc' };
         const extension = extensions[exportType];
         
         const blob = new Blob([code], { type: 'text/plain' });
@@ -2689,7 +4498,8 @@ class UIDesigner {
         
         const a = document.createElement('a');
         a.href = url;
-        const baseFilename = this.currentFramework === 'basalt' ? 'basalt-ui' : 'pixelui-ui';
+        const baseFilename = this.currentFramework === 'basalt' ? 'basalt-ui' : 
+                            this.currentFramework === 'pixelui' ? 'pixelui-ui' : 'primeui-ui';
         a.download = `${baseFilename}.${extension}`;
         a.click();
         
@@ -2772,6 +4582,229 @@ class UIDesigner {
             container.appendChild(item);
         });
     }
+
+    // ================================
+    // PROJECT MANAGEMENT FUNCTIONS
+    // ================================
+
+    // Save current project to localStorage
+    saveProject(name, description = '') {
+        if (!name) {
+            name = prompt('Enter project name:');
+            if (!name) return;
+        }
+
+        const projectId = 'xcc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const now = new Date().toISOString();
+        
+        const projectData = {
+            id: projectId,
+            name: name,
+            framework: this.currentFramework,
+            description: description,
+            elements: Array.from(this.elements.values()).map(element => ({
+                id: element.id,
+                type: element.type,
+                properties: { ...element.properties }
+            })),
+            properties: {
+                width: this.terminalWidth,
+                height: this.terminalHeight,
+                title: name
+            },
+            created: now,
+            modified: now,
+            version: '1.0.0'
+        };
+
+        // Get existing projects
+        const projects = JSON.parse(localStorage.getItem('xcc_projects') || '{}');
+        projects[projectId] = projectData;
+        localStorage.setItem('xcc_projects', JSON.stringify(projects));
+
+        this.showNotification(`Project "${name}" saved successfully!`);
+        return projectId;
+    }
+
+    // Load project from localStorage
+    loadProject(projectId) {
+        const projects = JSON.parse(localStorage.getItem('xcc_projects') || '{}');
+        const project = projects[projectId];
+        
+        if (!project) {
+            this.showNotification('Project not found!', 'error');
+            return false;
+        }
+
+        // Clear current design
+        this.elements.clear();
+        this.selectedElement = null;
+        this.canvas.innerHTML = '';
+
+        // Set framework
+        this.currentFramework = project.framework;
+        this.updateFrameworkTab();
+
+        // Set terminal size
+        if (project.properties) {
+            this.terminalWidth = project.properties.width || 51;
+            this.terminalHeight = project.properties.height || 19;
+            this.updateTerminalSize();
+        }
+
+        // Load elements
+        if (project.elements) {
+            project.elements.forEach(elementData => {
+                this.createElement(elementData.type, elementData.properties);
+            });
+        }
+
+        this.updatePropertiesPanel();
+        this.showNotification(`Project "${project.name}" loaded successfully!`);
+        return true;
+    }
+
+    // Auto-save project if it's being edited
+    autoSaveProject() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('edit');
+        
+        if (editId) {
+            const projects = JSON.parse(localStorage.getItem('xcc_projects') || '{}');
+            const project = projects[editId];
+            
+            if (project) {
+                project.elements = Array.from(this.elements.values()).map(element => ({
+                    id: element.id,
+                    type: element.type,
+                    properties: { ...element.properties }
+                }));
+                project.modified = new Date().toISOString();
+                project.properties = {
+                    width: this.terminalWidth,
+                    height: this.terminalHeight,
+                    title: project.name
+                };
+
+                projects[editId] = project;
+                localStorage.setItem('xcc_projects', JSON.stringify(projects));
+            }
+        }
+    }
+
+    // Check for project to load from session storage or URL
+    checkProjectLoad() {
+        // Check session storage for project data from project manager
+        const sessionProject = sessionStorage.getItem('xcc_load_project');
+        if (sessionProject) {
+            try {
+                const project = JSON.parse(sessionProject);
+                sessionStorage.removeItem('xcc_load_project');
+                
+                // Clear current design
+                this.elements.clear();
+                this.selectedElement = null;
+                this.canvas.innerHTML = '';
+
+                // Set framework
+                this.currentFramework = project.framework;
+                this.updateFrameworkTab();
+
+                // Set terminal size
+                if (project.properties) {
+                    this.terminalWidth = project.properties.width || 51;
+                    this.terminalHeight = project.properties.height || 19;
+                    this.updateTerminalSize();
+                }
+
+                // Load elements
+                if (project.elements) {
+                    project.elements.forEach(elementData => {
+                        this.createElement(elementData.type, elementData.properties);
+                    });
+                }
+
+                this.updatePropertiesPanel();
+                this.showNotification(`Project "${project.name}" loaded for editing!`);
+            } catch (error) {
+                console.error('Error loading project from session storage:', error);
+            }
+        }
+
+        // Check URL for edit parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('edit');
+        if (editId && !sessionProject) {
+            this.loadProject(editId);
+        }
+    }
+
+    // Update framework tab to match current framework
+    updateFrameworkTab() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(tab => {
+            tab.classList.remove('active');
+            if (tab.dataset.framework === this.currentFramework) {
+                tab.classList.add('active');
+            }
+        });
+        this.updateElementPalette();
+        this.updateLogoAndTitle();
+    }
+
+    // Show notification
+    showNotification(message, type = 'success') {
+        // Remove existing notification
+        const existingNotification = document.querySelector('.designer-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        const notification = document.createElement('div');
+        notification.className = `designer-notification ${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: ${type === 'error' ? '#f44336' : '#4CAF50'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        `;
+        document.body.appendChild(notification);
+
+        // Show notification
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+
+        // Hide notification after 3 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(400px)';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Quick save function for keyboard shortcut
+    quickSave() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('edit');
+        
+        if (editId) {
+            this.autoSaveProject();
+            this.showNotification('Project auto-saved!');
+        } else {
+            const name = prompt('Enter project name:');
+            if (name) {
+                this.saveProject(name);
+            }
+        }
+    }
 }
 
 // Initialize the designer when the page loads
@@ -2786,7 +4819,7 @@ document.addEventListener('keydown', (e) => {
         switch (e.key) {
             case 's':
                 e.preventDefault();
-                designer.showExportModal();
+                designer.quickSave();
                 break;
             case 'o':
                 e.preventDefault();
