@@ -524,6 +524,8 @@
             <a href="index.html" class="logo">XCC</a>
             <div class="nav-title">NFP Editor</div>
             <div class="nav-actions">
+                <button class="btn btn-secondary" onclick="nfpEditor.undo()" title="Undo (Ctrl+Z)">↶ Undo</button>
+                <button class="btn btn-secondary" onclick="nfpEditor.redo()" title="Redo (Ctrl+Y)">↷ Redo</button>
                 <a href="index.html" class="btn btn-secondary">← Back to Home</a>
                 <button class="btn btn-primary" onclick="nfpEditor.exportNFP()">💾 Export NFP</button>
             </div>
@@ -689,9 +691,19 @@
                 this.startX = 0;
                 this.startY = 0;
                 
+                // Undo/Redo functionality
+                this.history = [];
+                this.historyIndex = -1;
+                this.maxHistorySize = 50;
+                
+                // Mouse tracking for smooth drawing
+                this.lastX = -1;
+                this.lastY = -1;
+                
                 this.initializeCanvas();
                 this.setupEventListeners();
                 this.updatePreview();
+                this.saveState(); // Save initial state
             }
 
             initializeCanvas() {
@@ -740,6 +752,31 @@
                         this.loadFileFromInput(files[0]);
                     }
                 });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    // Ignore if user is typing in an input field
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                        return;
+                    }
+                    
+                    if (e.ctrlKey || e.metaKey) {
+                        switch (e.key.toLowerCase()) {
+                            case 'z':
+                                e.preventDefault();
+                                if (e.shiftKey) {
+                                    this.redo();
+                                } else {
+                                    this.undo();
+                                }
+                                break;
+                            case 'y':
+                                e.preventDefault();
+                                this.redo();
+                                break;
+                        }
+                    }
+                });
             }
 
             getMousePos(e) {
@@ -754,27 +791,36 @@
             }
 
             handleMouseDown(e) {
+                e.preventDefault(); // Prevent default behavior
+                
                 if (e.button === 0) { // Left click
                     this.isDrawing = true;
                     const pos = this.getMousePos(e);
                     this.startX = pos.x;
                     this.startY = pos.y;
+                    this.lastX = pos.x;
+                    this.lastY = pos.y;
                     
                     if (this.currentTool === 'brush') {
+                        this.saveState();
                         this.setPixel(pos.x, pos.y, this.currentColor);
                     } else if (this.currentTool === 'fill') {
+                        this.saveState();
                         this.floodFill(pos.x, pos.y, this.currentColor);
                     } else if (this.currentTool === 'eyedropper') {
                         const color = this.getPixel(pos.x, pos.y);
                         this.selectColor(color);
                     }
                 } else if (e.button === 2) { // Right click
+                    e.preventDefault();
                     const pos = this.getMousePos(e);
+                    this.saveState();
                     this.setPixel(pos.x, pos.y, ' '); // Erase
                 }
             }
 
             handleMouseMove(e) {
+                e.preventDefault(); // Prevent default behavior
                 this.getMousePos(e); // Update position display
                 
                 if (!this.isDrawing) return;
@@ -782,7 +828,14 @@
                 const pos = this.getMousePos(e);
                 
                 if (this.currentTool === 'brush') {
-                    this.setPixel(pos.x, pos.y, this.currentColor);
+                    // Draw line from last position to current position for smooth drawing
+                    if (this.lastX !== -1 && this.lastY !== -1) {
+                        this.drawLineBetween(this.lastX, this.lastY, pos.x, pos.y);
+                    } else {
+                        this.setPixel(pos.x, pos.y, this.currentColor);
+                    }
+                    this.lastX = pos.x;
+                    this.lastY = pos.y;
                 }
             }
 
@@ -793,11 +846,46 @@
                 const pos = this.getMousePos(e);
                 
                 if (this.currentTool === 'line') {
+                    this.saveState();
                     this.drawLine(this.startX, this.startY, pos.x, pos.y, this.currentColor);
                 } else if (this.currentTool === 'rectangle') {
+                    this.saveState();
                     this.drawRectangle(this.startX, this.startY, pos.x, pos.y, this.currentColor);
                 } else if (this.currentTool === 'circle') {
+                    this.saveState();
                     this.drawCircle(this.startX, this.startY, pos.x, pos.y, this.currentColor);
+                }
+                
+                // Reset last position
+                this.lastX = -1;
+                this.lastY = -1;
+            }
+
+            // Helper method for smooth brush drawing
+            drawLineBetween(x0, y0, x1, y1) {
+                const dx = Math.abs(x1 - x0);
+                const dy = Math.abs(y1 - y0);
+                const sx = x0 < x1 ? 1 : -1;
+                const sy = y0 < y1 ? 1 : -1;
+                let err = dx - dy;
+                
+                let x = x0;
+                let y = y0;
+                
+                while (true) {
+                    this.setPixel(x, y, this.currentColor);
+                    
+                    if (x === x1 && y === y1) break;
+                    
+                    const e2 = 2 * err;
+                    if (e2 > -dy) {
+                        err -= dy;
+                        x += sx;
+                    }
+                    if (e2 < dx) {
+                        err += dx;
+                        y += sy;
+                    }
                 }
             }
 
@@ -984,6 +1072,46 @@
                 document.getElementById('nfpPreview').textContent = nfp;
             }
 
+            // Undo/Redo functionality
+            saveState() {
+                const state = JSON.parse(JSON.stringify(this.pixels));
+                
+                // Remove future states if we're not at the end
+                if (this.historyIndex < this.history.length - 1) {
+                    this.history = this.history.slice(0, this.historyIndex + 1);
+                }
+                
+                // Add new state
+                this.history.push(state);
+                
+                // Limit history size
+                if (this.history.length > this.maxHistorySize) {
+                    this.history.shift();
+                } else {
+                    this.historyIndex++;
+                }
+            }
+
+            undo() {
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                    this.restoreState(this.history[this.historyIndex]);
+                }
+            }
+
+            redo() {
+                if (this.historyIndex < this.history.length - 1) {
+                    this.historyIndex++;
+                    this.restoreState(this.history[this.historyIndex]);
+                }
+            }
+
+            restoreState(state) {
+                this.pixels = JSON.parse(JSON.stringify(state));
+                this.redraw();
+                this.updatePreview();
+            }
+
             generateNFP() {
                 let result = '';
                 let hasContent = false;
@@ -1013,6 +1141,7 @@
             }
 
             loadNFP(nfpData) {
+                this.saveState();
                 this.pixels = {};
                 const lines = nfpData.split('\n');
                 
@@ -1110,6 +1239,7 @@
 
             newCanvas() {
                 if (confirm('Create a new canvas? This will clear the current image.')) {
+                    this.saveState();
                     this.pixels = {};
                     this.redraw();
                     this.updatePreview();
@@ -1118,6 +1248,7 @@
 
             clearCanvas() {
                 if (confirm('Clear the entire canvas?')) {
+                    this.saveState();
                     this.pixels = {};
                     this.redraw();
                     this.updatePreview();

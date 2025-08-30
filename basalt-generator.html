@@ -47,6 +47,8 @@
                 </div>
             </div>
             <div class="header-right">
+                <button class="btn btn-secondary" onclick="designer.undo()" title="Undo (Ctrl+Z)">↶ Undo</button>
+                <button class="btn btn-secondary" onclick="designer.redo()" title="Redo (Ctrl+Y)">↷ Redo</button>
                 <button class="btn btn-secondary" onclick="window.location.href='projects.html'">
                     📁 Projects
                 </button>
@@ -214,7 +216,6 @@
                     </div>
                     <div class="canvas-controls">
                         <button class="btn btn-sm" id="gridToggle">📐 Grid</button>
-                        <button class="btn btn-sm" id="clearCanvas">🗑️ Clear</button>
                     </div>
                 </div>
                 <div class="canvas-container">

@@ -13,6 +13,17 @@ class UIDesigner {
         this.isResizing = false;
         this.gridVisible = false;
         
+        // Undo/Redo functionality
+        this.history = [];
+        this.historyIndex = -1;
+        this.maxHistorySize = 50;
+        
+        // Clipboard functionality
+        this.clipboard = null;
+        
+        // Property change debouncing
+        this.propertyChangeTimeout = null;
+        
         this.terminalWidth = 51;
         this.terminalHeight = 19;
         this.cellWidth = 12;
@@ -34,6 +45,8 @@ class UIDesigner {
         this.createTerminalGrid();
         this.loadPreset('computer');
         this.updateElementPalette();
+        // Save initial empty state
+        this.saveState();
         // Check for project to load after initialization
         setTimeout(() => this.checkProjectLoad(), 100);
     }
@@ -1235,6 +1248,8 @@ class UIDesigner {
         const elementDef = this.getCurrentElements()[type];
         if (!elementDef) return null;
         
+        this.saveState();
+        
         const id = 'element_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         const properties = { ...elementDef.defaultProps, ...overrideProps };
         
@@ -1429,14 +1444,26 @@ class UIDesigner {
             const newX = Math.max(1, Math.min(this.terminalWidth - element.properties.width + 1, elementStart.x + deltaX));
             const newY = Math.max(1, Math.min(this.terminalHeight - element.properties.height + 1, elementStart.y + deltaY));
             
-            this.updateElementProperty(element, 'x', newX);
-            this.updateElementProperty(element, 'y', newY);
+            // Update position directly without triggering state save during drag
+            element.properties.x = newX;
+            element.properties.y = newY;
+            
+            const elementDiv = document.querySelector(`[data-element-id="${element.id}"]`);
+            if (elementDiv) {
+                this.updateElementDiv(elementDiv, element);
+            }
+            
+            if (this.selectedElement && this.selectedElement.id === element.id) {
+                this.updatePropertiesPanel();
+            }
         });
         
         document.addEventListener('mouseup', () => {
             if (isDragging) {
                 isDragging = false;
                 elementDiv.classList.remove('dragging');
+                // Save state after drag is complete
+                this.saveState();
             }
         });
     }
@@ -1491,14 +1518,26 @@ class UIDesigner {
                 newWidth = Math.min(newWidth, this.terminalWidth - newX + 1);
                 newHeight = Math.min(newHeight, this.terminalHeight - newY + 1);
                 
-                this.updateElementProperty(this.selectedElement, 'width', newWidth);
-                this.updateElementProperty(this.selectedElement, 'height', newHeight);
-                this.updateElementProperty(this.selectedElement, 'x', newX);
-                this.updateElementProperty(this.selectedElement, 'y', newY);
+                // Update properties directly during resize
+                this.selectedElement.properties.width = newWidth;
+                this.selectedElement.properties.height = newHeight;
+                this.selectedElement.properties.x = newX;
+                this.selectedElement.properties.y = newY;
+                
+                const elementDiv = document.querySelector(`[data-element-id="${this.selectedElement.id}"]`);
+                if (elementDiv) {
+                    this.updateElementDiv(elementDiv, this.selectedElement);
+                }
+                
+                this.updatePropertiesPanel();
             });
             
             document.addEventListener('mouseup', () => {
-                isResizing = false;
+                if (isResizing) {
+                    isResizing = false;
+                    // Save state after resize is complete
+                    this.saveState();
+                }
             });
             
             elementDiv.appendChild(handleDiv);
@@ -1537,6 +1576,12 @@ class UIDesigner {
         if (this.selectedElement && this.selectedElement.id === element.id) {
             this.updatePropertiesPanel();
         }
+        
+        // Save state after making changes (debounced)
+        clearTimeout(this.propertyChangeTimeout);
+        this.propertyChangeTimeout = setTimeout(() => {
+            this.saveState();
+        }, 500);
         
         // Auto-save project if editing
         setTimeout(() => this.autoSaveProject(), 500);
@@ -1580,15 +1625,23 @@ class UIDesigner {
             this.propertiesContent.appendChild(groupDiv);
         });
         
-        // Delete button
-        const deleteDiv = document.createElement('div');
-        deleteDiv.className = 'property-group';
-        deleteDiv.innerHTML = `
+        // Action buttons
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'property-group';
+        actionsDiv.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <button class="btn btn-secondary" onclick="designer.copyElement()" title="Copy (Ctrl+C)">
+                    📋 Copy
+                </button>
+                <button class="btn btn-secondary" onclick="designer.duplicateElement()" title="Duplicate (Ctrl+D)">
+                    🔄 Duplicate
+                </button>
+            </div>
             <button class="btn btn-secondary" style="width: 100%; color: #e53e3e;" onclick="designer.deleteElement('${element.id}')">
                 🗑️ Delete Element
             </button>
         `;
-        this.propertiesContent.appendChild(deleteDiv);
+        this.propertiesContent.appendChild(actionsDiv);
     }
     
     createPropertyField(element, property) {
@@ -2039,6 +2092,8 @@ class UIDesigner {
         const element = this.elements.get(elementId);
         if (!element) return;
         
+        this.saveState();
+        
         const elementDiv = document.querySelector(`[data-element-id="${elementId}"]`);
         if (elementDiv) {
             elementDiv.remove();
@@ -2057,6 +2112,7 @@ class UIDesigner {
     
     clearCanvas() {
         if (confirm('Are you sure you want to clear the canvas? This will delete all elements.')) {
+            this.saveState();
             this.clearCanvasForImport();
         }
     }
@@ -2074,6 +2130,111 @@ class UIDesigner {
         
         // Show drop zone
         this.showDropZone();
+    }
+
+    // Undo/Redo functionality
+    saveState() {
+        const state = {
+            elements: new Map(),
+            selectedElement: this.selectedElement
+        };
+        
+        // Deep copy elements
+        this.elements.forEach((element, key) => {
+            state.elements.set(key, JSON.parse(JSON.stringify(element)));
+        });
+        
+        // Remove future states if we're not at the end
+        if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+        }
+        
+        // Add new state
+        this.history.push(state);
+        
+        // Limit history size
+        if (this.history.length > this.maxHistorySize) {
+            this.history.shift();
+        } else {
+            this.historyIndex++;
+        }
+    }
+
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            this.restoreState(this.history[this.historyIndex]);
+        }
+    }
+
+    redo() {
+        if (this.historyIndex < this.history.length - 1) {
+            this.historyIndex++;
+            this.restoreState(this.history[this.historyIndex]);
+        }
+    }
+
+    restoreState(state) {
+        // Clear current elements
+        document.querySelectorAll('.ui-element').forEach(el => el.remove());
+        
+        // Restore elements with deep copy
+        this.elements = new Map();
+        state.elements.forEach((element, key) => {
+            this.elements.set(key, JSON.parse(JSON.stringify(element)));
+        });
+        
+        this.selectedElement = state.selectedElement;
+        
+        // Recreate visual elements
+        this.elements.forEach((element) => {
+            this.renderElement(element);
+        });
+        
+        // Update properties panel
+        this.updatePropertiesPanel();
+        
+        // Show/hide drop zone
+        if (this.elements.size === 0) {
+            this.showDropZone();
+        } else {
+            this.hideDropZone();
+        }
+    }
+
+    // Clipboard functionality
+    copyElement() {
+        if (this.selectedElement) {
+            const element = this.elements.get(this.selectedElement.id);
+            if (element) {
+                // Create a deep copy
+                this.clipboard = JSON.parse(JSON.stringify(element));
+            }
+        }
+    }
+
+    pasteElement() {
+        if (this.clipboard) {
+            this.saveState();
+            
+            // Create new element with offset position
+            const newElement = JSON.parse(JSON.stringify(this.clipboard));
+            newElement.id = 'element_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            newElement.properties.x = Math.min(newElement.properties.x + 2, this.terminalWidth - newElement.properties.width);
+            newElement.properties.y = Math.min(newElement.properties.y + 2, this.terminalHeight - newElement.properties.height);
+            
+            this.elements.set(newElement.id, newElement);
+            this.renderElement(newElement);
+            this.selectElement(newElement);
+            this.hideDropZone();
+        }
+    }
+
+    duplicateElement() {
+        if (this.selectedElement) {
+            this.copyElement();
+            this.pasteElement();
+        }
     }
     
     updateElementPositions() {
@@ -4404,8 +4565,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey) {
-        switch (e.key) {
+    // Ignore if user is typing in an input field
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    
+    if (e.ctrlKey || e.metaKey) {
+        switch (e.key.toLowerCase()) {
             case 's':
                 e.preventDefault();
                 designer.quickSave();
@@ -4414,6 +4580,33 @@ document.addEventListener('keydown', (e) => {
                 e.preventDefault();
                 designer.showImportModal();
                 break;
+            case 'z':
+                e.preventDefault();
+                if (e.shiftKey) {
+                    designer.redo();
+                } else {
+                    designer.undo();
+                }
+                break;
+            case 'y':
+                e.preventDefault();
+                designer.redo();
+                break;
+            case 'c':
+                e.preventDefault();
+                designer.copyElement();
+                break;
+            case 'v':
+                e.preventDefault();
+                designer.pasteElement();
+                break;
+            case 'd':
+                e.preventDefault();
+                designer.duplicateElement();
+                break;
+        }
+    } else {
+        switch (e.key) {
             case 'Delete':
             case 'Backspace':
                 if (designer.selectedElement) {
@@ -4421,11 +4614,10 @@ document.addEventListener('keydown', (e) => {
                     designer.deleteElement(designer.selectedElement.id);
                 }
                 break;
+            case 'Escape':
+                designer.selectElement(null);
+                break;
         }
-    }
-    
-    if (e.key === 'Escape') {
-        designer.selectElement(null);
     }
 });
 
