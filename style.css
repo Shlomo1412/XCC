@@ -308,11 +308,13 @@ body {
     width: 100%;
     height: 100%;
     position: relative;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-family: 'Courier New', 'Monaco', 'Consolas', 'Lucida Console', 'Liberation Mono', monospace;
     font-size: 12px;
     line-height: 1;
     background: #1a202c;
     color: #f7fafc;
+    letter-spacing: 5px;
+    font-weight: 500;
 }
 
 .terminal-grid {
@@ -389,6 +391,9 @@ body {
     cursor: pointer;
     user-select: none;
     transition: border-color 0.2s;
+    font-family: 'Courier New', 'Monaco', 'Consolas', 'Lucida Console', 'Liberation Mono', monospace;
+    letter-spacing: 5px;
+    font-weight: 500;
 }
 
 .ui-element:hover {
@@ -1340,3 +1345,52 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
 
 /* End Dark Neon Theme Overrides */
+
+/* ComputerCraft Font Styling for Canvas Elements */
+.ui-element,
+.ui-element *,
+.terminal-preview .ui-element,
+.terminal-preview .ui-element *,
+#terminalPreview *,
+#terminalSimulation *,
+.canvas .ui-element,
+.canvas .ui-element * {
+    font-family: 'Courier New', 'Monaco', 'Consolas', 'Lucida Console', 'Liberation Mono', monospace !important;
+    letter-spacing: 5px !important;
+    font-weight: 500 !important;
+}
+
+/* Specific styling for different UI element types */
+.ui-element[data-type="Label"],
+.ui-element[data-type="Button"], 
+.ui-element[data-type="Input"],
+.ui-element[data-type="TextBox"],
+.ui-element[data-type="Checkbox"],
+.ui-element[data-type="List"],
+.ui-element[data-type="Dropdown"],
+.ui-element[data-type="Menu"] {
+    font-family: 'Courier New', 'Monaco', 'Consolas', 'Lucida Console', 'Liberation Mono', monospace !important;
+    letter-spacing: 0.5px !important;
+    font-weight: 500 !important;
+}
+
+/* Override for terminal simulation in preview */
+.terminal-simulation {
+    font-family: 'Courier New', 'Monaco', 'Consolas', 'Lucida Console', 'Liberation Mono', monospace !important;
+    letter-spacing: 0.5px !important;
+    font-weight: 500 !important;
+}
+
+.terminal-simulation * {
+    font-family: inherit !important;
+    letter-spacing: inherit !important;
+    font-weight: inherit !important;
+}
+
+/* Ensure all canvas text elements use retro styling */
+[data-framework] .ui-element,
+[data-framework] .ui-element * {
+    font-family: 'Courier New', 'Monaco', 'Consolas', 'Lucida Console', 'Liberation Mono', monospace !important;
+    letter-spacing: 0.5px !important;
+    font-weight: 500 !important;
+}
