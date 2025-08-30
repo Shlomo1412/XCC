@@ -252,37 +252,84 @@
 
         <!-- Modals -->
         <!-- Export Modal -->
-        <div class="modal" id="exportModal">
+        <div class="modal large" id="exportModal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Export Basalt Code</h3>
+                    <h3>🚀 Export Your Design</h3>
                     <button class="modal-close" data-modal="exportModal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="export-options">
-                        <div class="export-option">
-                            <input type="radio" id="exportLua" name="exportType" value="lua" checked>
-                            <label for="exportLua">Lua Code</label>
-                        </div>
-                        <div class="export-option">
-                            <input type="radio" id="exportJSON" name="exportType" value="json">
-                            <label for="exportJSON">JSON Data</label>
-                        </div>
-                        <div class="export-option">
-                            <input type="radio" id="exportXML" name="exportType" value="xml">
-                            <label for="exportXML">XML (Basalt Plugin)</label>
-                        </div>
-                        <div class="export-option">
-                            <input type="radio" id="exportXCC" name="exportType" value="xcc">
-                            <label for="exportXCC">XCC Format</label>
+                    <div class="export-intro">
+                        <p>Choose your preferred export format and get ready-to-use code for your ComputerCraft project.</p>
+                    </div>
+                    
+                    <div class="export-format-selector">
+                        <h4>📦 Export Format</h4>
+                        <div class="export-options">
+                            <div class="export-option active" data-format="lua">
+                                <input type="radio" id="exportLua" name="exportType" value="lua" checked>
+                                <label for="exportLua">
+                                    <div class="export-option-icon">🔧</div>
+                                    <div class="export-option-content">
+                                        <strong>Lua Code</strong>
+                                        <small>Ready-to-run Basalt script</small>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="export-option" data-format="json">
+                                <input type="radio" id="exportJSON" name="exportType" value="json">
+                                <label for="exportJSON">
+                                    <div class="export-option-icon">📄</div>
+                                    <div class="export-option-content">
+                                        <strong>JSON Data</strong>
+                                        <small>Structured data format</small>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="export-option" data-format="xml">
+                                <input type="radio" id="exportXML" name="exportType" value="xml">
+                                <label for="exportXML">
+                                    <div class="export-option-icon">🏷️</div>
+                                    <div class="export-option-content">
+                                        <strong>XML Format</strong>
+                                        <small>Basalt plugin compatible</small>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="export-option" data-format="xcc">
+                                <input type="radio" id="exportXCC" name="exportType" value="xcc">
+                                <label for="exportXCC">
+                                    <div class="export-option-icon">💎</div>
+                                    <div class="export-option-content">
+                                        <strong>XCC Project</strong>
+                                        <small>Re-editable project file</small>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                    <div class="code-output">
-                        <pre><code id="exportCode" class="language-lua"></code></pre>
+                    
+                    <div class="export-preview">
+                        <div class="export-preview-header">
+                            <h4>📋 Generated Code</h4>
+                            <div class="export-stats">
+                                <span id="codeLines">0 lines</span>
+                                <span id="codeSize">0 bytes</span>
+                            </div>
+                        </div>
+                        <div class="code-output">
+                            <pre><code id="exportCode" class="language-lua"></code></pre>
+                        </div>
                     </div>
+                    
                     <div class="modal-actions">
-                        <button class="btn btn-secondary" id="copyCodeBtn">📋 Copy Code</button>
-                        <button class="btn btn-primary" id="downloadCodeBtn">💾 Download</button>
+                        <button class="btn btn-secondary" data-modal="exportModal">Cancel</button>
+                        <button class="btn btn-action" id="copyCodeBtn">
+                            <span>📋 Copy to Clipboard</span>
+                        </button>
+                        <button class="btn btn-primary" id="downloadCodeBtn">
+                            <span>💾 Download File</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -292,23 +339,56 @@
         <div class="modal" id="importModal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Import Design</h3>
+                    <h3>📥 Import Design</h3>
                     <button class="modal-close" data-modal="importModal">&times;</button>
                 </div>
                 <div class="modal-body">
+                    <div class="import-intro">
+                        <p>Choose how you'd like to import your design. You can upload a file or paste code directly.</p>
+                    </div>
+                    
                     <div class="import-options">
-                        <div class="import-method">
-                            <label for="importFile">Import from File:</label>
-                            <input type="file" id="importFile" accept=".json,.lua,.xml,.xcc">
+                        <div class="import-method file-method">
+                            <div class="import-method-header">
+                                <div class="import-icon">📁</div>
+                                <div>
+                                    <h4>Upload File</h4>
+                                    <p>Import from .xcc, .json, .lua, or .xml files</p>
+                                </div>
+                            </div>
+                            <div class="file-drop-zone">
+                                <input type="file" id="importFile" accept=".json,.lua,.xml,.xcc">
+                                <div class="file-drop-content">
+                                    <div class="upload-icon">⬆️</div>
+                                    <p><strong>Click to browse</strong> or drag & drop your file here</p>
+                                    <small>Supports .xcc, .json, .lua, .xml files</small>
+                                </div>
+                            </div>
                         </div>
-                        <div class="import-method">
-                            <label for="importCode">Or paste code:</label>
-                            <textarea id="importCode" placeholder="Paste your Basalt code or JSON here..."></textarea>
+                        
+                        <div class="import-divider">
+                            <span>OR</span>
+                        </div>
+                        
+                        <div class="import-method code-method">
+                            <div class="import-method-header">
+                                <div class="import-icon">📝</div>
+                                <div>
+                                    <h4>Paste Code</h4>
+                                    <p>Directly paste your code or JSON data</p>
+                                </div>
+                            </div>
+                            <div class="code-input-container">
+                                <textarea id="importCode" placeholder="Paste your Basalt code, JSON, or XML here..."></textarea>
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="modal-actions">
                         <button class="btn btn-secondary" data-modal="importModal">Cancel</button>
-                        <button class="btn btn-primary" id="performImport">Import</button>
+                        <button class="btn btn-primary" id="performImport">
+                            <span>🚀 Import Design</span>
+                        </button>
                     </div>
                 </div>
             </div>
