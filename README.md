@@ -10,11 +10,6 @@ A comprehensive suite of web-based tools designed specifically for CC: Tweaked d
 - **Real-time Preview**: See your changes instantly
 - **Code Generation**: Automatic Lua code generation
 
-### 📦 Built-in Bundler
-- **No Dependencies**: Self-contained generated code
-- **Optimized Output**: Clean, efficient Lua code
-- **Component Library**: Complete framework components included
-
 ### 🌳 Advanced Components
 - **TreeView**: Hierarchical data display
 - **Charts**: Data visualization widgets
