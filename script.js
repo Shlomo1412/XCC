@@ -1323,8 +1323,14 @@ class UIDesigner {
                 break;
                 
             case 'Checkbox':
-                const checkmark = properties.checked ? properties.checkedText : '';
-                elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px;">[${checkmark}] ${properties.text}</span>`;
+                if (this.currentFramework === 'basalt') {
+                    // For Basalt, text already contains [ ] or [x] format
+                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px;">${properties.text}</span>`;
+                } else {
+                    // For PixelUI/PrimeUI, add checkbox brackets
+                    const checkmark = properties.checked ? properties.checkedText : '';
+                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px;">[${checkmark}] ${properties.text}</span>`;
+                }
                 break;
                 
             case 'List':
