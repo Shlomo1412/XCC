@@ -39,7 +39,7 @@
             overflow-x: hidden;
         }
 
-        /* Animated background */
+        /* Advanced animated background with particles */
         .bg-animation {
             position: fixed;
             top: 0;
@@ -48,6 +48,7 @@
             height: 100%;
             z-index: -1;
             background: var(--bg-dark);
+            overflow: hidden;
         }
 
         .bg-animation::before {
@@ -55,22 +56,105 @@
             position: absolute;
             top: 0;
             left: 0;
+            width: 120%;
+            height: 120%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(0, 255, 136, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 0, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 40% 60%, rgba(0, 136, 255, 0.08) 0%, transparent 50%);
+            animation: float 25s ease-in-out infinite;
+        }
+
+        .bg-animation::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(circle at 20% 20%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 107, 0, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 60%, rgba(0, 136, 255, 0.05) 0%, transparent 50%);
-            animation: float 20s ease-in-out infinite;
+                conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(0, 255, 136, 0.03) 90deg, transparent 180deg, rgba(255, 107, 0, 0.03) 270deg, transparent 360deg);
+            animation: rotate 60s linear infinite;
+        }
+
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: floatUp 15s infinite linear;
+        }
+
+        /* Matrix-style code rain */
+        .code-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .code-char {
+            position: absolute;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            opacity: 0.3;
+            animation: codeRain 10s linear infinite;
         }
 
         @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -30px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
+            0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            25% { transform: translate(30px, -30px) scale(1.1) rotate(90deg); }
+            50% { transform: translate(-20px, -60px) scale(0.9) rotate(180deg); }
+            75% { transform: translate(40px, -30px) scale(1.05) rotate(270deg); }
         }
 
-        /* Header */
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) translateX(0px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes codeRain {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        /* Enhanced Header with scroll effects */
         .header {
             position: fixed;
             top: 0;
@@ -80,6 +164,14 @@
             border-bottom: 1px solid var(--border-color);
             z-index: 1000;
             padding: 1rem 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .header.scrolled {
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(30px);
+            padding: 0.5rem 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
         .nav {
@@ -89,6 +181,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 0 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .logo {
@@ -98,6 +191,54 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--gradient-1);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover::after {
+            transform: scaleX(1);
+        }
+
+        .header.scrolled .logo {
+            font-size: 1.8rem;
+        }
+
+        /* Mouse trail effect */
+        .cursor-trail {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Scroll progress indicator */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: var(--gradient-1);
+            z-index: 10000;
+            transition: width 0.1s ease;
         }
 
         .nav-links {
@@ -110,14 +251,34 @@
             color: var(--text-secondary);
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-links a:hover::before {
+            left: 100%;
         }
 
         .nav-links a:hover {
             color: var(--accent);
+            transform: translateY(-2px);
         }
 
-        /* Hero Section */
+        /* Enhanced Hero Section with advanced animations */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -126,11 +287,28 @@
             text-align: center;
             padding: 2rem;
             position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.05) 0%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            animation: heroGlow 2s ease-out 0.5s forwards;
         }
 
         .hero-content {
             max-width: 800px;
-            animation: fadeInUp 1s ease-out;
+            animation: heroEntrance 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            transform: translateY(50px);
+            opacity: 0;
+            position: relative;
+            z-index: 2;
         }
 
         .hero-title {
@@ -142,6 +320,20 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             line-height: 1.1;
+            position: relative;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        .hero-title::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            animation: shimmer 3s infinite;
         }
 
         .hero-subtitle {
@@ -149,6 +341,17 @@
             color: var(--text-secondary);
             margin-bottom: 2rem;
             font-weight: 400;
+            animation: fadeInUp 1s ease-out 0.3s both;
+            position: relative;
+        }
+
+        /* Typewriter effect */
+        .typewriter {
+            overflow: hidden;
+            border-right: 0.15em solid var(--accent);
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3s steps(40, end) 1s both, blink-caret 0.75s step-end infinite 1s;
         }
 
         .hero-description {
@@ -156,6 +359,56 @@
             color: var(--text-muted);
             margin-bottom: 3rem;
             line-height: 1.8;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        /* Floating icons around hero */
+        .floating-icon {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.3;
+            animation: floatIcon 6s ease-in-out infinite;
+        }
+
+        .floating-icon:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+        .floating-icon:nth-child(2) { top: 30%; right: 15%; animation-delay: 1s; }
+        .floating-icon:nth-child(3) { bottom: 30%; left: 20%; animation-delay: 2s; }
+        .floating-icon:nth-child(4) { bottom: 20%; right: 10%; animation-delay: 3s; }
+
+        @keyframes heroGlow {
+            to { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes heroEntrance {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.3)); }
+            50% { filter: drop-shadow(0 0 40px rgba(0, 255, 136, 0.6)); }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--accent); }
+        }
+
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
         }
 
         .cta-buttons {
@@ -163,6 +416,7 @@
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
+            animation: fadeInUp 1s ease-out 0.9s both;
         }
 
         .btn {
@@ -175,37 +429,65 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn-primary {
             background: var(--gradient-1);
             color: white;
             box-shadow: var(--shadow);
+            transform: perspective(1000px) rotateX(0deg);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 25px 50px rgba(0, 255, 136, 0.3);
+            transform: perspective(1000px) rotateX(5deg) translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: perspective(1000px) rotateX(2deg) translateY(-2px);
         }
 
         .btn-secondary {
             background: transparent;
             color: var(--text-primary);
             border: 2px solid var(--border-color);
+            transform: perspective(1000px) rotateX(0deg);
         }
 
         .btn-secondary:hover {
             border-color: var(--accent);
             background: rgba(0, 255, 136, 0.1);
+            transform: perspective(1000px) rotateX(5deg) translateY(-3px);
+            box-shadow: 0 20px 40px rgba(0, 255, 136, 0.2);
         }
 
-        /* Features Section */
+        /* Enhanced Features Section with scroll animations */
         .features {
             padding: 6rem 2rem;
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
         }
 
         .section-title {
@@ -217,6 +499,14 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section-title.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .section-subtitle {
@@ -224,6 +514,14 @@
             font-size: 1.3rem;
             color: var(--text-secondary);
             margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+        }
+
+        .section-subtitle.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .features-grid {
@@ -237,9 +535,17 @@
             border: 1px solid var(--border-color);
             border-radius: 20px;
             padding: 2rem;
-            transition: all 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px) rotateX(15deg);
+            perspective: 1000px;
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0) rotateX(0deg);
         }
 
         .feature-card::before {
@@ -251,17 +557,37 @@
             height: 2px;
             background: var(--gradient-1);
             transform: scaleX(0);
-            transition: transform 0.3s ease;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: left;
+        }
+
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 255, 136, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
         }
 
         .feature-card:hover::before {
             transform: scaleX(1);
         }
 
+        .feature-card:hover::after {
+            opacity: 1;
+        }
+
         .feature-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px) rotateX(5deg);
             border-color: var(--accent);
-            box-shadow: var(--shadow);
+            box-shadow: 
+                var(--shadow),
+                0 0 30px rgba(0, 255, 136, 0.2);
         }
 
         .feature-icon {
@@ -274,6 +600,31 @@
             justify-content: center;
             font-size: 1.5rem;
             margin-bottom: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.4s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotateY(360deg);
+        }
+
+        .feature-card:hover .feature-icon::before {
+            width: 100%;
+            height: 100%;
         }
 
         .feature-title {
@@ -355,7 +706,7 @@
             font-size: 0.9rem;
         }
 
-        /* Animations */
+        /* Enhanced Animations */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -367,8 +718,74 @@
             }
         }
 
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
         .fade-in-up {
             animation: fadeInUp 0.8s ease-out;
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 0.8s ease-out;
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.8s ease-out;
+        }
+
+        .zoom-in {
+            animation: zoomIn 0.6s ease-out;
+        }
+
+        /* Parallax scroll elements */
+        .parallax-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120%;
+            height: 120%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="%2300ff88" opacity="0.1"/></svg>') repeat;
+            animation: parallaxMove 20s linear infinite;
+        }
+
+        @keyframes parallaxMove {
+            0% { transform: translateX(0) translateY(0); }
+            100% { transform: translateX(-20px) translateY(-20px); }
         }
 
         /* Responsive */
@@ -444,7 +861,12 @@
     </style>
 </head>
 <body>
-    <div class="bg-animation"></div>
+    <div class="bg-animation">
+        <div class="parallax-bg"></div>
+        <div class="code-rain"></div>
+    </div>
+    <div class="scroll-progress"></div>
+    <div class="cursor-trail"></div>
     
     <!-- Header -->
     <header class="header">
@@ -461,9 +883,13 @@
 
     <!-- Hero Section -->
     <section class="hero" id="home">
+        <div class="floating-icon">🎨</div>
+        <div class="floating-icon">⚡</div>
+        <div class="floating-icon">🚀</div>
+        <div class="floating-icon">💻</div>
         <div class="hero-content">
             <h1 class="hero-title">XCC</h1>
-            <p class="hero-subtitle">ComputerCraft Tools Collection</p>
+            <p class="hero-subtitle typewriter">ComputerCraft Tools Collection</p>
             <p class="hero-description">
                 A comprehensive suite of web-based tools designed specifically for CC: Tweaked development. 
                 Build beautiful UIs, design complex interfaces, and enhance your ComputerCraft programming experience 
@@ -623,27 +1049,215 @@ PrimeUI.run()
     </footer>
 
     <script>
-        // Simple scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+        // Enhanced interactive features
+        class InteractiveEffects {
+            constructor() {
+                this.init();
+                this.setupScrollEffects();
+                this.setupParticles();
+                this.setupCursorTrail();
+                this.setupCardInteractions();
+                this.setupCodeRain();
+            }
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
+            init() {
+                // Scroll progress indicator
+                window.addEventListener('scroll', this.updateScrollProgress.bind(this));
+                
+                // Header scroll effect
+                window.addEventListener('scroll', this.updateHeader.bind(this));
+                
+                // Parallax effects
+                window.addEventListener('scroll', this.updateParallax.bind(this));
+                
+                // Intersection observer for animations
+                this.setupIntersectionObserver();
+            }
+
+            updateScrollProgress() {
+                const scrolled = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+                document.querySelector('.scroll-progress').style.width = scrolled + '%';
+            }
+
+            updateHeader() {
+                const header = document.querySelector('.header');
+                if (window.scrollY > 100) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
                 }
-            });
-        }, observerOptions);
+            }
 
-        // Observe all feature cards
-        document.querySelectorAll('.feature-card').forEach((card, index) => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
-            observer.observe(card);
+            updateParallax() {
+                const scrolled = window.pageYOffset;
+                const parallaxBg = document.querySelector('.parallax-bg');
+                if (parallaxBg) {
+                    parallaxBg.style.transform = `translateY(${scrolled * 0.5}px)`;
+                }
+            }
+
+            setupIntersectionObserver() {
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry, index) => {
+                        if (entry.isIntersecting) {
+                            setTimeout(() => {
+                                entry.target.classList.add('visible');
+                            }, index * 100);
+                        }
+                    });
+                }, observerOptions);
+
+                // Observe elements for scroll animations
+                document.querySelectorAll('.feature-card, .section-title, .section-subtitle').forEach(el => {
+                    observer.observe(el);
+                });
+            }
+
+            setupParticles() {
+                const particleContainer = document.querySelector('.bg-animation');
+                
+                // Create floating particles
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        this.createParticle(particleContainer);
+                    }, i * 300);
+                }
+
+                // Continuously create particles
+                setInterval(() => {
+                    this.createParticle(particleContainer);
+                }, 2000);
+            }
+
+            createParticle(container) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(particle);
+
+                // Remove particle after animation
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 20000);
+            }
+
+            setupCursorTrail() {
+                const trail = document.querySelector('.cursor-trail');
+                let mouseX = 0, mouseY = 0;
+                let trailX = 0, trailY = 0;
+
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                    trail.style.opacity = '0.6';
+                });
+
+                document.addEventListener('mouseleave', () => {
+                    trail.style.opacity = '0';
+                });
+
+                // Smooth trail following
+                const updateTrail = () => {
+                    trailX += (mouseX - trailX) * 0.1;
+                    trailY += (mouseY - trailY) * 0.1;
+                    
+                    trail.style.left = trailX - 10 + 'px';
+                    trail.style.top = trailY - 10 + 'px';
+                    
+                    requestAnimationFrame(updateTrail);
+                };
+                updateTrail();
+            }
+
+            setupCodeRain() {
+                const codeRainContainer = document.querySelector('.code-rain');
+                const codeChars = ['0', '1', '{', '}', '(', ')', '[', ']', '<', '>', '/', '\\', '=', '+', '-', '*', ';', ':', 'local', 'end', 'if', 'then'];
+                
+                // Create falling code characters
+                setInterval(() => {
+                    const char = document.createElement('div');
+                    char.className = 'code-char';
+                    char.textContent = codeChars[Math.floor(Math.random() * codeChars.length)];
+                    char.style.left = Math.random() * 100 + 'vw';
+                    char.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                    char.style.animationDelay = Math.random() * 2 + 's';
+                    codeRainContainer.appendChild(char);
+
+                    // Remove character after animation
+                    setTimeout(() => {
+                        if (char.parentNode) {
+                            char.parentNode.removeChild(char);
+                        }
+                    }, 12000);
+                }, 500);
+            }
+
+            setupCardInteractions() {
+                document.querySelectorAll('.feature-card').forEach(card => {
+                    card.addEventListener('mousemove', (e) => {
+                        const rect = card.getBoundingClientRect();
+                        const x = ((e.clientX - rect.left) / rect.width) * 100;
+                        const y = ((e.clientY - rect.top) / rect.height) * 100;
+                        
+                        card.style.setProperty('--mouse-x', x + '%');
+                        card.style.setProperty('--mouse-y', y + '%');
+                    });
+
+                    // Add ripple effect on click
+                    card.addEventListener('click', (e) => {
+                        const ripple = document.createElement('div');
+                        const rect = card.getBoundingClientRect();
+                        const size = Math.max(rect.width, rect.height);
+                        const x = e.clientX - rect.left - size / 2;
+                        const y = e.clientY - rect.top - size / 2;
+                        
+                        ripple.style.cssText = `
+                            position: absolute;
+                            width: ${size}px;
+                            height: ${size}px;
+                            left: ${x}px;
+                            top: ${y}px;
+                            background: radial-gradient(circle, rgba(0, 255, 136, 0.3) 0%, transparent 70%);
+                            border-radius: 50%;
+                            transform: scale(0);
+                            animation: ripple 0.6s ease-out;
+                            pointer-events: none;
+                            z-index: 1;
+                        `;
+                        
+                        card.style.position = 'relative';
+                        card.appendChild(ripple);
+                        
+                        setTimeout(() => ripple.remove(), 600);
+                    });
+                });
+            }
+        }
+
+        // Add ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new InteractiveEffects();
         });
 
         // Smooth scrolling for navigation links
@@ -658,6 +1272,21 @@ PrimeUI.run()
                     });
                 }
             });
+        });
+
+        // Add typewriter effect to subtitle
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const subtitle = document.querySelector('.hero-subtitle');
+                if (subtitle && subtitle.classList.contains('typewriter')) {
+                    subtitle.style.borderRight = 'none';
+                    
+                    setTimeout(() => {
+                        subtitle.style.borderRight = '0.15em solid var(--accent)';
+                        subtitle.style.animation = 'blink-caret 0.75s step-end infinite';
+                    }, 3000);
+                }
+            }, 1000);
         });
     </script>
 </body>
