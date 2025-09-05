@@ -155,50 +155,67 @@ class UIDesigner {
     
     getElementIcon(type) {
         const icons = {
-            // Basalt elements
-            'Frame': '🖼️',
-            'Container': '📦',
-            'Flexbox': '📐',
-            'Label': '🏷️',
-            'Button': '🔘',
-            'Input': '📝',
-            'Checkbox': '☑️',
-            'Radio': '🔘',
-            'Switch': '🔀',
-            'List': '📋',
-            'Dropdown': '📜',
-            'Menubar': '📊',
-            'Table': '📊',
-            'Tree': '🌲',
-            'Progressbar': '📊',
-            'Slider': '🎚️',
-            'Graph': '📈',
-            'Image': '🖼️',
-            
-            // PixelUI elements
-            'Widget': '📦',
-            'TextBox': '📝',
-            'CheckBox': '☑️',
-            'ListView': '📋',
-            'ComboBox': '📜',
-            'TabControl': '📑',
-            'ProgressBar': '📊',
-            'Chart': '📈',
-            'Canvas': '🎨',
-            'RichTextBox': '📄',
-            'CodeEditor': '💻',
-            'ColorPicker': '🎨',
-            'RadioButton': '🔘',
-            'ToggleSwitch': '🔀',
-            'RangeSlider': '🎚️',
-            'LoadingIndicator': '⏳',
-            'Accordion': '📂',
-            'TreeView': '🌳',
-            'NumericUpDown': '🔢'
-        };
+        // Basalt elements
+        'Frame': '🖼️',
+        'Container': '📦',
+        'Flexbox': '📐',
+        'Menu': '📋',
+        'Label': '🏷️',
+        'Button': '🔘',
+        'Input': '📝',
+        'BarChart': '📊',
+        'BigFont': '🔠',
+        'Program': '⚙️',
+        'LineChart': '📈',
+        'Display': '🖥️',
+        'Checkbox': '☑️',
+        'Radio': '🔘',
+        'Switch': '🔀',
+        'List': '📋',
+        'Dropdown': '📜',
+        'Menubar': '📊',
+        'Table': '📊',
+        'Tree': '🌲',
+        'Progressbar': '📊',
+        'Slider': '🎚️',
+        'Graph': '📈',
+        'Image': '🖼️',
         
+        // PixelUI elements
+        'Widget': '📦',
+        'TextBox': '📝',
+        'CheckBox': '☑️',
+        'ListView': '📋',
+        'ComboBox': '📜',
+        'TabControl': '📑',
+        'ProgressBar': '📊',
+        'Chart': '📈',
+        'Canvas': '🎨',
+        'RichTextBox': '📄',
+        'CodeEditor': '💻',
+        'ColorPicker': '🎨',
+        'RadioButton': '🔘',
+        'ToggleSwitch': '🔀',
+        'RangeSlider': '🎚️',
+        'LoadingIndicator': '⏳',
+        'Accordion': '📂',
+        'TreeView': '🌳',
+        'NumericUpDown': '🔢',
+
+        // PrimeUI elements
+        'InputBox': '💬',
+        'ScrollBox': '🖱️',
+        'SelectionBox': '🔲',
+        'CheckSelectionBox': '✅',
+        'BorderBox': '⬜',
+        'HorizontalLine': '➖',
+        'DrawImage': '🖼️',
+        'DrawText': '✏️'
+        };
+    
         return icons[type] || '📦';
     }
+
     
     initializePixelUIElements() {
         return {
