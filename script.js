@@ -125,7 +125,7 @@ class UIDesigner {
                     category = 'Containers';
                 } else if (['Label', 'Button', 'Input', 'Checkbox', 'Radio', 'Switch'].includes(element.type)) {
                     category = 'Basic';
-                } else if (['List', 'Dropdown', 'Menubar', 'Table', 'Tree'].includes(element.type)) {
+                } else if (['List', 'Dropdown', 'Menubar', 'Table', 'Tree', 'TabControl'].includes(element.type)) {
                     category = 'Advanced';
                 } else if (['Progressbar', 'Slider', 'Graph', 'Image'].includes(element.type)) {
                     category = 'Display';
@@ -612,6 +612,21 @@ class UIDesigner {
                     checkbox: ['checked', 'text', 'checkedText', 'autoSize']
                 }
             },
+            Switch: {
+                type: 'Switch',
+                defaultProps: {
+                    x: 1, y: 1, width: 8, height: 1,
+                    checked: false, text: '',
+                    onBackground: 'lime', offBackground: 'red',
+                    background: 'black', foreground: 'white',
+                    autoSize: true, visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'z', 'width', 'height', 'visible'],
+                    appearance: ['background', 'foreground', 'onBackground', 'offBackground'],
+                    switch: ['checked', 'text', 'autoSize']
+                }
+            },
             List: {
                 type: 'List',
                 defaultProps: {
@@ -638,6 +653,25 @@ class UIDesigner {
                     basic: ['x', 'y', 'z', 'width', 'height', 'visible'],
                     appearance: ['background', 'foreground', 'headerColor', 'selectedColor', 'gridColor'],
                     table: ['columns', 'data']
+                }
+            },
+            TabControl: {
+                type: 'TabControl',
+                defaultProps: {
+                    x: 1, y: 1, width: 25, height: 10,
+                    activeTab: 1, tabHeight: 1,
+                    tabs: [
+                        { title: 'Tab 1' },
+                        { title: 'Tab 2' }
+                    ],
+                    headerBackground: 'gray', activeTabBackground: 'lightBlue',
+                    activeTabTextColor: 'white',
+                    background: 'black', foreground: 'white', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'z', 'width', 'height', 'visible'],
+                    appearance: ['background', 'foreground', 'headerBackground', 'activeTabBackground', 'activeTabTextColor'],
+                    tabcontrol: ['activeTab', 'tabHeight', 'tabs']
                 }
             },
             Tree: {
@@ -1299,6 +1333,23 @@ class UIDesigner {
             elementDiv.classList.add('selected');
         }
         
+        // Set CSS variables for special color properties
+        if (element.properties.onBackground) {
+            elementDiv.style.setProperty('--on-bg-color', this.ccColors[element.properties.onBackground] || element.properties.onBackground);
+        }
+        if (element.properties.offBackground) {
+            elementDiv.style.setProperty('--off-bg-color', this.ccColors[element.properties.offBackground] || element.properties.offBackground);
+        }
+        if (element.properties.headerBackground) {
+            elementDiv.style.setProperty('--header-bg-color', this.ccColors[element.properties.headerBackground] || element.properties.headerBackground);
+        }
+        if (element.properties.activeTabBackground) {
+            elementDiv.style.setProperty('--active-tab-bg-color', this.ccColors[element.properties.activeTabBackground] || element.properties.activeTabBackground);
+        }
+        if (element.properties.activeTabTextColor) {
+            elementDiv.style.setProperty('--active-tab-text-color', this.ccColors[element.properties.activeTabTextColor] || element.properties.activeTabTextColor);
+        }
+        
         // Render element content based on type
         this.renderElementContent(elementDiv, element);
     }
@@ -1333,8 +1384,32 @@ class UIDesigner {
                 }
                 break;
                 
+            case 'Switch':
+                const switchState = properties.checked ? 'ON' : 'OFF';
+                const switchColor = properties.checked ? 'var(--on-bg-color, lime)' : 'var(--off-bg-color, red)';
+                elementDiv.innerHTML = `<div style="display: flex; align-items: center; font-size: 11px;">
+                    <div style="background: ${switchColor}; color: var(--fg-color, #fff); padding: 1px 4px; border-radius: 2px; margin-right: 4px;">${switchState}</div>
+                    <span style="color: var(--fg-color, #fff);">${properties.text}</span>
+                </div>`;
+                break;
+                
             case 'List':
                 elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: 10px;">List (${properties.items.length} items)</div>`;
+                break;
+                
+            case 'TabControl':
+                const tabs = properties.tabs || [];
+                const activeTab = properties.activeTab || 1;
+                let tabsHtml = '<div style="display: flex; border-bottom: 1px solid #666; font-size: 10px;">';
+                tabs.forEach((tab, index) => {
+                    const isActive = (index + 1) === activeTab;
+                    const tabBg = isActive ? 'var(--active-tab-bg-color, lightBlue)' : 'var(--header-bg-color, gray)';
+                    const tabColor = isActive ? 'var(--active-tab-text-color, white)' : 'var(--fg-color, white)';
+                    tabsHtml += `<div style="padding: 2px 6px; background: ${tabBg}; color: ${tabColor}; border-right: 1px solid #666;">${tab.title}</div>`;
+                });
+                tabsHtml += '</div>';
+                tabsHtml += '<div style="border: 1px solid #666; flex: 1; padding: 2px; color: var(--fg-color, #fff); font-size: 10px;">Tab Content</div>';
+                elementDiv.innerHTML = `<div style="display: flex; flex-direction: column; height: 100%;">${tabsHtml}</div>`;
                 break;
                 
             case 'ProgressBar':
@@ -1707,6 +1782,8 @@ class UIDesigner {
         } else if (Array.isArray(value)) {
             if (property === 'items' && (element.type === 'Dropdown' || element.type === 'List' || element.type === 'Menu')) {
                 inputHtml = this.createItemsManager(element, property);
+            } else if (property === 'tabs' && element.type === 'TabControl') {
+                inputHtml = this.createTabsManager(element, property);
             } else if (property === 'nodes' && element.type === 'Tree') {
                 inputHtml = this.createNodesManager(element, property);
             } else if ((property === 'data' && element.type === 'TreeView') || (property === 'nodes' && element.type === 'Tree')) {
@@ -1775,6 +1852,30 @@ class UIDesigner {
         return fieldDiv;
     }
     
+    createTabsManager(element, property) {
+        const tabs = element.properties[property] || [];
+        const managerId = `manager_${element.id}_${property}`;
+        
+        let html = `<div class="tabs-manager" id="${managerId}">`;
+        html += `<div class="tabs-list">`;
+        
+        tabs.forEach((tab, index) => {
+            const tabTitle = tab.title || `Tab ${index + 1}`;
+            html += `
+                <div class="tab-entry" data-index="${index}">
+                    <input type="text" value="${tabTitle}" onchange="designer.updateTab('${element.id}', '${property}', ${index}, this.value)" style="flex: 1; margin-right: 8px;">
+                    <button class="btn btn-sm" onclick="designer.removeTab('${element.id}', '${property}', ${index})" style="background: #e53e3e; color: white; padding: 4px 8px;">×</button>
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+        html += `<button class="btn btn-sm" onclick="designer.addTab('${element.id}', '${property}')" style="width: 100%; margin-top: 8px; background: #38a169; color: white;">+ Add Tab</button>`;
+        html += `</div>`;
+        
+        return html;
+    }
+
     createItemsManager(element, property) {
         const items = element.properties[property] || [];
         const managerId = `manager_${element.id}_${property}`;
@@ -1922,6 +2023,47 @@ class UIDesigner {
         return html;
     }
     
+    // Tab management methods
+    addTab(elementId, property) {
+        const element = this.elements.get(elementId);
+        if (!element) return;
+        
+        const tabs = element.properties[property] || [];
+        tabs.push({ title: `Tab ${tabs.length + 1}` });
+        
+        this.updateElementProperty(element, property, tabs);
+        this.updatePropertiesPanel();
+    }
+    
+    removeTab(elementId, property, index) {
+        const element = this.elements.get(elementId);
+        if (!element) return;
+        
+        const tabs = [...(element.properties[property] || [])];
+        if (tabs.length <= 1) return; // Don't allow removing the last tab
+        
+        tabs.splice(index, 1);
+        
+        // Adjust activeTab if necessary
+        const activeTab = element.properties.activeTab || 1;
+        if (activeTab > tabs.length) {
+            this.updateElementProperty(element, 'activeTab', tabs.length);
+        }
+        
+        this.updateElementProperty(element, property, tabs);
+        this.updatePropertiesPanel();
+    }
+    
+    updateTab(elementId, property, index, value) {
+        const element = this.elements.get(elementId);
+        if (!element) return;
+        
+        const tabs = [...(element.properties[property] || [])];
+        tabs[index] = { ...tabs[index], title: value };
+        
+        this.updateElementProperty(element, property, tabs);
+    }
+
     // Item management methods
     addItem(elementId, property) {
         const element = this.elements.get(elementId);
@@ -3805,7 +3947,7 @@ class UIDesigner {
                 if (elementDef.defaultProps[key] !== value) {
                     const propertyMethod = this.getBasaltPropertyMethod(key);
                     if (propertyMethod) {
-                        if (typeof value === 'string' && (key.includes('Color') || key === 'background' || key === 'foreground')) {
+                        if (typeof value === 'string' && (key.includes('Color') || key.includes('Background') || key === 'background' || key === 'foreground')) {
                             if (value.startsWith('colors.')) {
                                 code += `    :${propertyMethod}(${value})\n`;
                             } else {
@@ -3817,15 +3959,28 @@ class UIDesigner {
                             if (value.length === 0) {
                                 code += `    :${propertyMethod}({})\n`;
                             } else {
-                                const items = value.map(v => {
-                                    if (typeof v === 'string') {
+                                // Special handling for tabs property
+                                if (key === 'tabs') {
+                                    const tabs = value.map(tab => {
+                                        if (typeof tab === 'object' && tab.title) {
+                                            return `{ title = "${tab.title}" }`;
+                                        } else if (typeof tab === 'string') {
+                                            return `{ title = "${tab}" }`;
+                                        }
+                                        return `{ title = "${tab}" }`;
+                                    }).join(', ');
+                                    code += `    :${propertyMethod}({${tabs}})\n`;
+                                } else {
+                                    const items = value.map(v => {
+                                        if (typeof v === 'string') {
+                                            return `"${v}"`;
+                                        } else if (typeof v === 'object' && v.text) {
+                                            return `"${v.text}"`;
+                                        }
                                         return `"${v}"`;
-                                    } else if (typeof v === 'object' && v.text) {
-                                        return `"${v.text}"`;
-                                    }
-                                    return `"${v}"`;
-                                }).join(', ');
-                                code += `    :${propertyMethod}({${items}})\n`;
+                                    }).join(', ');
+                                    code += `    :${propertyMethod}({${items}})\n`;
+                                }
                             }
                         } else {
                             code += `    :${propertyMethod}(${value})\n`;
@@ -3866,7 +4021,17 @@ class UIDesigner {
             maxLength: 'setMaxLength',
             focusedBackground: 'setFocusedBackground',
             focusedForeground: 'setFocusedForeground',
-            placeholderColor: 'setPlaceholderColor'
+            placeholderColor: 'setPlaceholderColor',
+            // Switch properties
+            onBackground: 'setOnBackground',
+            offBackground: 'setOffBackground',
+            // TabControl properties
+            activeTab: 'setActiveTab',
+            tabHeight: 'setTabHeight',
+            tabs: 'setTabs',
+            headerBackground: 'setHeaderBackground',
+            activeTabBackground: 'setActiveTabBackground',
+            activeTabTextColor: 'setActiveTabTextColor'
         };
         return methodMap[key] || `set${key.charAt(0).toUpperCase() + key.slice(1)}`;
     }
