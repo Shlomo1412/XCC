@@ -487,6 +487,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 modal.style.display = 'none';
             }
         });
+
+        // Close dropdown when clicking outside
+        const dropdown = document.querySelector('.new-project-dropdown');
+        if (dropdown && !dropdown.contains(event.target)) {
+            dropdown.classList.remove('open');
+        }
     });
 
     // Close modals with Escape key
@@ -496,6 +502,18 @@ document.addEventListener('DOMContentLoaded', () => {
             modals.forEach(modal => {
                 modal.style.display = 'none';
             });
+            
+            // Close dropdown with Escape key
+            const dropdown = document.querySelector('.new-project-dropdown');
+            if (dropdown) {
+                dropdown.classList.remove('open');
+            }
         }
     });
 });
+
+// Dropdown toggle function
+function toggleNewProjectDropdown() {
+    const dropdown = document.querySelector('.new-project-dropdown');
+    dropdown.classList.toggle('open');
+}

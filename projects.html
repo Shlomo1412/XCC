@@ -177,6 +177,80 @@
             box-shadow: 0 25px 50px rgba(255, 71, 87, 0.3);
         }
 
+        /* Dropdown Styles */
+        .new-project-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-arrow {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .new-project-dropdown.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            min-width: 300px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .new-project-dropdown.open .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--accent);
+        }
+
+        .dropdown-icon {
+            font-size: 1.5rem;
+            width: 2rem;
+            text-align: center;
+        }
+
+        .dropdown-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .dropdown-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
         .projects-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -557,9 +631,35 @@
         </div>
 
         <div class="project-actions">
-            <a href="basalt-generator.html" class="btn btn-primary">
-                <span>+</span> New Project
-            </a>
+            <div class="new-project-dropdown">
+                <button class="btn btn-primary" onclick="toggleNewProjectDropdown()">
+                    <span>+</span> New Project
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="dropdown-menu" id="newProjectDropdown">
+                    <a href="basalt-generator.html" class="dropdown-item">
+                        <span class="dropdown-icon">🖼️</span>
+                        <div>
+                            <div class="dropdown-title">GUI Designer</div>
+                            <div class="dropdown-desc">Visual GUI builder for CC interfaces</div>
+                        </div>
+                    </a>
+                    <a href="blockly-editor.html" class="dropdown-item">
+                        <span class="dropdown-icon">🧩</span>
+                        <div>
+                            <div class="dropdown-title">Blockly Editor</div>
+                            <div class="dropdown-desc">Visual programming with drag-and-drop blocks</div>
+                        </div>
+                    </a>
+                    <a href="nfp-editor.html" class="dropdown-item">
+                        <span class="dropdown-icon">🎨</span>
+                        <div>
+                            <div class="dropdown-title">NFP Editor</div>
+                            <div class="dropdown-desc">Create and edit paintutils images</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
             <button onclick="showImportModal()" class="btn btn-secondary">
                 <span>📁</span> Import Project
             </button>
@@ -594,9 +694,35 @@
         <div id="emptyState" class="empty-state" style="display: none;">
             <h3>No Projects Yet</h3>
             <p>Create your first XCC project to get started!</p>
-            <a href="basalt-generator.html" class="btn btn-primary">
-                <span>+</span> Create First Project
-            </a>
+            <div class="new-project-dropdown">
+                <button class="btn btn-primary" onclick="toggleNewProjectDropdown()">
+                    <span>+</span> Create First Project
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="dropdown-menu" id="newProjectDropdown">
+                    <a href="basalt-generator.html" class="dropdown-item">
+                        <span class="dropdown-icon">🖼️</span>
+                        <div>
+                            <div class="dropdown-title">GUI Designer</div>
+                            <div class="dropdown-desc">Visual GUI builder for CC interfaces</div>
+                        </div>
+                    </a>
+                    <a href="blockly-editor.html" class="dropdown-item">
+                        <span class="dropdown-icon">🧩</span>
+                        <div>
+                            <div class="dropdown-title">Blockly Editor</div>
+                            <div class="dropdown-desc">Visual programming with drag-and-drop blocks</div>
+                        </div>
+                    </a>
+                    <a href="nfp-editor.html" class="dropdown-item">
+                        <span class="dropdown-icon">🎨</span>
+                        <div>
+                            <div class="dropdown-title">NFP Editor</div>
+                            <div class="dropdown-desc">Create and edit paintutils images</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
