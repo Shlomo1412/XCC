@@ -4645,7 +4645,6 @@ class UIDesigner {
         // Clear current design
         this.elements.clear();
         this.selectedElement = null;
-        this.canvas.innerHTML = '';
 
         // Set framework
         this.currentFramework = project.framework;
@@ -4755,7 +4754,7 @@ class UIDesigner {
             }
         });
         this.updateElementPalette();
-        this.updateLogoAndTitle();
+        // this.updateLogoAndTitle(); Not defined. Causes an uncaught error.
     }
 
     // Show notification
