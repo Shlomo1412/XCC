@@ -598,6 +598,48 @@
                 </div>
             </div>
         </div>
+
+        <!-- Framework Switch Warning Modal -->
+        <div class="modal" id="frameworkSwitchModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>⚠️ Switch Framework</h3>
+                    <button class="modal-close" data-modal="frameworkSwitchModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="warning-content">
+                        <div class="warning-icon">🚨</div>
+                        <div class="warning-message">
+                            <h4>This action will clear your current design</h4>
+                            <p>Switching frameworks will permanently delete all elements on the canvas. This action cannot be undone.</p>
+                            
+                            <div class="framework-switch-info">
+                                <div class="current-framework">
+                                    <strong>Current:</strong> <span id="currentFrameworkName">Basalt</span>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div class="target-framework">
+                                    <strong>Switching to:</strong> <span id="targetFrameworkName">PixelUI</span>
+                                </div>
+                            </div>
+                            
+                            <div class="elements-count">
+                                <span id="elementsCount">0</span> elements will be lost
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="warning-actions">
+                        <button class="btn btn-secondary" onclick="designer.cancelFrameworkSwitch()">
+                            ❌ Cancel
+                        </button>
+                        <button class="btn btn-danger" onclick="designer.confirmFrameworkSwitch()">
+                            🗑️ Delete All & Switch
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>

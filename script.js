@@ -53,30 +53,24 @@ class UIDesigner {
     
     setupFrameworkTabs() {
         const tabButtons = document.querySelectorAll('.tab-btn');
-        const logoTitle = document.getElementById('logoTitle');
         
         tabButtons.forEach(tab => {
             tab.addEventListener('click', () => {
-                // Remove active class from all tabs
-                tabButtons.forEach(t => t.classList.remove('active'));
-                // Add active class to clicked tab
-                tab.classList.add('active');
+                const targetFramework = tab.dataset.framework;
                 
-                // Switch framework
-                this.currentFramework = tab.dataset.framework;
-                
-                // Update title
-                if (this.currentFramework === 'basalt') {
-                    logoTitle.textContent = 'Basalt 2 UI Designer';
-                } else if (this.currentFramework === 'pixelui') {
-                    logoTitle.textContent = 'PixelUI Designer';
-                } else if (this.currentFramework === 'primeui') {
-                    logoTitle.textContent = 'PrimeUI Designer';
+                // Don't do anything if clicking the same framework
+                if (targetFramework === this.currentFramework) {
+                    return;
                 }
                 
-                // Clear canvas and update element palette
-                this.clearCanvas();
-                this.updateElementPalette();
+                // Check if there are elements on canvas
+                if (this.elements.size > 0) {
+                    // Show warning modal
+                    this.showFrameworkSwitchWarning(targetFramework);
+                } else {
+                    // No elements, switch directly
+                    this.switchToFramework(targetFramework);
+                }
             });
         });
     }
@@ -2434,6 +2428,80 @@ class UIDesigner {
         if (modal) {
             modal.classList.remove('active');
         }
+    }
+    
+    // Framework switching methods
+    showFrameworkSwitchWarning(targetFramework) {
+        // Store the target framework for later use
+        this.pendingFrameworkSwitch = targetFramework;
+        
+        // Update modal content with framework names
+        const currentFrameworkName = this.getFrameworkDisplayName(this.currentFramework);
+        const targetFrameworkName = this.getFrameworkDisplayName(targetFramework);
+        
+        document.getElementById('currentFrameworkName').textContent = currentFrameworkName;
+        document.getElementById('targetFrameworkName').textContent = targetFrameworkName;
+        document.getElementById('elementsCount').textContent = this.elements.size;
+        
+        // Show the modal
+        this.showModal('frameworkSwitchModal');
+    }
+    
+    getFrameworkDisplayName(framework) {
+        const names = {
+            'basalt': 'Basalt 2',
+            'pixelui': 'PixelUI',
+            'primeui': 'PrimeUI'
+        };
+        return names[framework] || framework;
+    }
+    
+    confirmFrameworkSwitch() {
+        if (this.pendingFrameworkSwitch) {
+            // Clear all elements and switch framework
+            this.clearCanvasForImport();
+            this.switchToFramework(this.pendingFrameworkSwitch);
+            this.hideModal('frameworkSwitchModal');
+            this.pendingFrameworkSwitch = null;
+            
+            // Show success notification
+            const frameworkName = this.getFrameworkDisplayName(this.currentFramework);
+            this.showNotification(`Switched to ${frameworkName} framework`, 'success');
+        }
+    }
+    
+    cancelFrameworkSwitch() {
+        this.pendingFrameworkSwitch = null;
+        this.hideModal('frameworkSwitchModal');
+    }
+    
+    switchToFramework(framework) {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const logoTitle = document.getElementById('logoTitle');
+        
+        // Remove active class from all tabs
+        tabButtons.forEach(t => t.classList.remove('active'));
+        
+        // Add active class to target tab
+        const targetTab = document.querySelector(`[data-framework="${framework}"]`);
+        if (targetTab) {
+            targetTab.classList.add('active');
+        }
+        
+        // Switch framework
+        this.currentFramework = framework;
+        
+        // Update title
+        if (this.currentFramework === 'basalt') {
+            logoTitle.textContent = 'Basalt 2 UI Designer';
+        } else if (this.currentFramework === 'pixelui') {
+            logoTitle.textContent = 'PixelUI Designer';
+        } else if (this.currentFramework === 'primeui') {
+            logoTitle.textContent = 'PrimeUI Designer';
+        }
+        
+        // Update element palette
+        this.updateElementPalette();
     }
     
     showExportModal() {
