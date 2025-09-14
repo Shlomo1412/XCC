@@ -1316,6 +1316,26 @@ class UIDesigner {
         return element;
     }
     
+    createElementFromData(type, properties) {
+        const elementDef = this.getCurrentElements()[type];
+        if (!elementDef) return null;
+        
+        const id = 'element_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const elementProperties = { ...elementDef.defaultProps, ...properties };
+        
+        const element = {
+            id,
+            type,
+            properties: elementProperties,
+            children: []
+        };
+        
+        this.elements.set(id, element);
+        this.renderElement(element);
+        
+        return element;
+    }
+    
     renderElement(element) {
         const elementDiv = document.createElement('div');
         elementDiv.className = 'ui-element';
@@ -4645,6 +4665,7 @@ class UIDesigner {
         // Clear current design
         this.elements.clear();
         this.selectedElement = null;
+        document.querySelectorAll('.ui-element').forEach(el => el.remove());
 
         // Set framework
         this.currentFramework = project.framework;
@@ -4660,8 +4681,12 @@ class UIDesigner {
         // Load elements
         if (project.elements) {
             project.elements.forEach(elementData => {
-                this.createElement(elementData.type, elementData.properties);
+                this.createElementFromData(elementData.type, elementData.properties);
             });
+            // Hide drop zone after loading all elements
+            if (project.elements.length > 0) {
+                this.hideDropZone();
+            }
         }
 
         this.updatePropertiesPanel();
@@ -4709,7 +4734,7 @@ class UIDesigner {
                 // Clear current design
                 this.elements.clear();
                 this.selectedElement = null;
-                this.canvas.innerHTML = '';
+                document.querySelectorAll('.ui-element').forEach(el => el.remove());
 
                 // Set framework
                 this.currentFramework = project.framework;
@@ -4725,8 +4750,12 @@ class UIDesigner {
                 // Load elements
                 if (project.elements) {
                     project.elements.forEach(elementData => {
-                        this.createElement(elementData.type, elementData.properties);
+                        this.createElementFromData(elementData.type, elementData.properties);
                     });
+                    // Hide drop zone after loading all elements
+                    if (project.elements.length > 0) {
+                        this.hideDropZone();
+                    }
                 }
 
                 this.updatePropertiesPanel();
