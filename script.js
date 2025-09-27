@@ -3866,12 +3866,31 @@ class UIDesigner {
     }
 
     generatePixelUICode() {
+        // Check if smart margins are enabled
+        const smartMarginsEnabled = document.getElementById('smartMargins')?.checked || false;
+        
         let code = '-- PixelUI Generated Code\n';
         code += 'local PixelUI = require("pixelui")\n\n';
+        
+        if (smartMarginsEnabled) {
+            code += '-- Smart Margin System: Auto-adapt to different screen sizes\n';
+            code += 'local w, h = term.getSize()\n';
+            code += `local designWidth, designHeight = ${this.terminalWidth}, ${this.terminalHeight}\n`;
+            code += 'local scaleX, scaleY = w / designWidth, h / designHeight\n';
+            code += 'local function smartPos(pos) return math.floor(pos * scaleX + 0.5) end\n';
+            code += 'local function smartPosY(pos) return math.floor(pos * scaleY + 0.5) end\n';
+            code += 'local function smartSize(size, isWidth) return math.max(1, math.floor(size * (isWidth and scaleX or scaleY) + 0.5)) end\n\n';
+        }
+        
         code += '-- Create main container\n';
         code += 'local main = PixelUI.container({\n';
-        code += `    width = ${this.terminalWidth},\n`;
-        code += `    height = ${this.terminalHeight}\n`;
+        if (smartMarginsEnabled) {
+            code += '    width = w,\n';
+            code += '    height = h\n';
+        } else {
+            code += `    width = ${this.terminalWidth},\n`;
+            code += `    height = ${this.terminalHeight}\n`;
+        }
         code += '})\n\n';
         
         // Add elements
@@ -3929,7 +3948,16 @@ class UIDesigner {
                 const isEssentialProperty = ['width', 'height', 'x', 'y'].includes(key);
                 
                 if (isEssentialProperty || elementDef.defaultProps[key] !== value) {
-                    if (typeof value === 'string' && key.includes('Color') || key === 'background' || key === 'color') {
+                    // Apply smart margins to positioning and sizing
+                    if (smartMarginsEnabled && key === 'x') {
+                        code += `    ${key} = smartPos(${value}),\n`;
+                    } else if (smartMarginsEnabled && key === 'y') {
+                        code += `    ${key} = smartPosY(${value}),\n`;
+                    } else if (smartMarginsEnabled && key === 'width') {
+                        code += `    ${key} = smartSize(${value}, true),\n`;
+                    } else if (smartMarginsEnabled && key === 'height') {
+                        code += `    ${key} = smartSize(${value}, false),\n`;
+                    } else if (typeof value === 'string' && key.includes('Color') || key === 'background' || key === 'color') {
                         if (value.startsWith('colors.')) {
                             code += `    ${key} = ${value},\n`;
                         } else {
@@ -4009,12 +4037,30 @@ class UIDesigner {
     }
     
     generateBasaltCode() {
+        // Check if smart margins are enabled
+        const smartMarginsEnabled = document.getElementById('smartMargins')?.checked || false;
+        
         // Use existing Basalt code generation method
         let code = '-- Basalt 2 Generated Code\n';
         code += 'local basalt = require("basalt")\n\n';
+        
+        if (smartMarginsEnabled) {
+            code += '-- Smart Margin System: Auto-adapt to different screen sizes\n';
+            code += 'local w, h = term.getSize()\n';
+            code += `local designWidth, designHeight = ${this.terminalWidth}, ${this.terminalHeight}\n`;
+            code += 'local scaleX, scaleY = w / designWidth, h / designHeight\n';
+            code += 'local function smartPos(x, y) return math.floor(x * scaleX + 0.5), math.floor(y * scaleY + 0.5) end\n';
+            code += 'local function smartSize(width, height) return math.max(1, math.floor(width * scaleX + 0.5)), math.max(1, math.floor(height * scaleY + 0.5)) end\n\n';
+        }
+        
         code += '-- Create main frame\n';
-        code += 'local main = basalt.createFrame()\n';
-        code += `    :setSize(${this.terminalWidth}, ${this.terminalHeight})\n\n`;
+        if (smartMarginsEnabled) {
+            code += 'local main = basalt.createFrame()\n';
+            code += '    :setSize(w, h)\n\n';
+        } else {
+            code += 'local main = basalt.createFrame()\n';
+            code += `    :setSize(${this.terminalWidth}, ${this.terminalHeight})\n\n`;
+        }
         
         // Add elements with existing logic
         const sortedElements = Array.from(this.elements.values()).sort((a, b) => {
@@ -4034,14 +4080,22 @@ class UIDesigner {
             const x = element.properties.x;
             const y = element.properties.y;
             if (x !== elementDef.defaultProps.x || y !== elementDef.defaultProps.y) {
-                code += `    :setPosition(${x}, ${y})\n`;
+                if (smartMarginsEnabled) {
+                    code += `    :setPosition(smartPos(${x}, ${y}))\n`;
+                } else {
+                    code += `    :setPosition(${x}, ${y})\n`;
+                }
             }
             
             // Handle size (width, height) together
             const width = element.properties.width;
             const height = element.properties.height;
             if (width !== elementDef.defaultProps.width || height !== elementDef.defaultProps.height) {
-                code += `    :setSize(${width}, ${height})\n`;
+                if (smartMarginsEnabled) {
+                    code += `    :setSize(smartSize(${width}, ${height}))\n`;
+                } else {
+                    code += `    :setSize(${width}, ${height})\n`;
+                }
             }
             
             // Add other properties
@@ -4142,6 +4196,9 @@ class UIDesigner {
     }
     
     generatePrimeUICode() {
+        // Check if smart margins are enabled
+        const smartMarginsEnabled = document.getElementById('smartMargins')?.checked || false;
+        
         // Get selected components first
         const usedComponents = new Set();
         const sortedElements = Array.from(this.elements.values()).sort((a, b) => {
@@ -4158,6 +4215,16 @@ class UIDesigner {
         let code = '-- PrimeUI Generated Code\n';
         code += '-- Generated by XCC Designer\n';
         code += '-- Note: You need to manually include PrimeUI library\n\n';
+        
+        // Add smart margin system for PrimeUI
+        if (smartMarginsEnabled) {
+            code += '-- Smart Margin System: Auto-adapt to different screen sizes\n';
+            code += 'local w, h = term.getSize()\n';
+            code += `local designWidth, designHeight = ${this.terminalWidth}, ${this.terminalHeight}\n`;
+            code += 'local scaleX, scaleY = w / designWidth, h / designHeight\n';
+            code += 'local function smartPos(x, y) return math.floor(x * scaleX + 0.5), math.floor(y * scaleY + 0.5) end\n';
+            code += 'local function smartSize(width, height) return math.max(1, math.floor(width * scaleX + 0.5)), math.max(1, math.floor(height * scaleY + 0.5)) end\n\n';
+        }
         
         code += '-- Initialize and clear screen\n';
         code += 'term.clear()\n';
@@ -4182,12 +4249,29 @@ class UIDesigner {
             const safeWidth = sanitizeCoord(element.properties.width) || 1;
             const safeHeight = sanitizeCoord(element.properties.height) || 1;
             
+            // Apply smart margins if enabled
+            let posX, posY, sizeW, sizeH;
+            if (smartMarginsEnabled) {
+                code += `-- Calculate smart positions for ${elementType}\n`;
+                code += `local x${index + 1}, y${index + 1} = smartPos(${safeX}, ${safeY})\n`;
+                code += `local w${index + 1}, h${index + 1} = smartSize(${safeWidth}, ${safeHeight})\n`;
+                posX = `x${index + 1}`;
+                posY = `y${index + 1}`;
+                sizeW = `w${index + 1}`;
+                sizeH = `h${index + 1}`;
+            } else {
+                posX = safeX;
+                posY = safeY;
+                sizeW = safeWidth;
+                sizeH = safeHeight;
+            }
+            
             code += `-- ${elementType} element\n`;
             
             // Generate function call based on element type
             switch (elementType) {
                 case 'Button':
-                    code += `local ${varName} = PrimeUI.button(win, ${safeX}, ${safeY}, "${element.properties.text}", function() end`;
+                    code += `local ${varName} = PrimeUI.button(win, ${posX}, ${posY}, "${element.properties.text}", function() end`;
                     if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
                     if (element.properties.bgColor !== 'lightGray') code += `, colors.${element.properties.bgColor}`;
                     if (element.properties.clickedColor !== 'gray') code += `, colors.${element.properties.clickedColor}`;
@@ -4195,21 +4279,21 @@ class UIDesigner {
                     break;
                     
                 case 'Label':
-                    code += `PrimeUI.label(win, ${safeX}, ${safeY}, "${element.properties.text}"`;
+                    code += `PrimeUI.label(win, ${posX}, ${posY}, "${element.properties.text}"`;
                     if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
                     if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
                     code += ')\n';
                     break;
                     
                 case 'CenterLabel':
-                    code += `PrimeUI.centerLabel(win, ${safeX}, ${safeY}, ${safeWidth}, "${element.properties.text}"`;
+                    code += `PrimeUI.centerLabel(win, ${posX}, ${posY}, ${sizeW}, "${element.properties.text}"`;
                     if (element.properties.fgColor !== 'white') code += `, colors.${element.properties.fgColor}`;
                     if (element.properties.bgColor !== 'black') code += `, colors.${element.properties.bgColor}`;
                     code += ')\n';
                     break;
                     
                 case 'InputBox':
-                    code += `PrimeUI.inputBox(win, ${safeX}, ${safeY}, ${safeWidth}, function(text) end`;
+                    code += `PrimeUI.inputBox(win, ${posX}, ${posY}, ${sizeW}, function(text) end`;
                     // Add optional color parameters
                     if (element.properties.fgColor !== 'white' || element.properties.bgColor !== 'black' || element.properties.replacement) {
                         code += `, colors.${element.properties.fgColor || 'white'}`;
