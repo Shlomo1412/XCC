@@ -115,11 +115,11 @@ class UIDesigner {
             let category = 'Basic';
             
             if (this.currentFramework === 'basalt') {
-                if (['Frame', 'Container', 'Flexbox'].includes(element.type)) {
+                if (['Frame', 'Container', 'Flexbox', 'SideNav'].includes(element.type)) {
                     category = 'Containers';
                 } else if (['Label', 'Button', 'Input', 'Checkbox', 'Radio', 'Switch'].includes(element.type)) {
                     category = 'Basic';
-                } else if (['List', 'Dropdown', 'Menubar', 'Table', 'Tree', 'TabControl'].includes(element.type)) {
+                } else if (['List', 'Dropdown', 'Menubar', 'Table', 'Tree', 'TabControl', 'SideNav'].includes(element.type)) {
                     category = 'Advanced';
                 } else if (['Progressbar', 'Slider', 'Graph', 'Image'].includes(element.type)) {
                     category = 'Display';
@@ -170,6 +170,7 @@ class UIDesigner {
         'Menubar': '📊',
         'Table': '📊',
         'Tree': '🌲',
+        'SideNav': '🧭',
         'Progressbar': '📊',
         'Slider': '🎚️',
         'Graph': '📈',
@@ -683,6 +684,26 @@ class UIDesigner {
                     basic: ['x', 'y', 'z', 'width', 'height', 'visible'],
                     appearance: ['background', 'foreground', 'headerBackground', 'activeTabBackground', 'activeTabTextColor'],
                     tabcontrol: ['activeTab', 'tabHeight', 'tabs']
+                }
+            },
+            SideNav: {
+                type: 'SideNav',
+                defaultProps: {
+                    x: 1, y: 1, width: 30, height: 15,
+                    activeTab: 1, sidebarWidth: 12,
+                    tabs: [
+                        { title: 'Nav 1' },
+                        { title: 'Nav 2' }
+                    ],
+                    sidebarBackground: 'gray', activeTabBackground: 'white',
+                    activeTabTextColor: 'black', sidebarScrollOffset: 0,
+                    sidebarPosition: 'left',
+                    background: 'black', foreground: 'white', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'z', 'width', 'height', 'visible'],
+                    appearance: ['background', 'foreground', 'sidebarBackground', 'activeTabBackground', 'activeTabTextColor'],
+                    sidenav: ['activeTab', 'sidebarWidth', 'tabs', 'sidebarScrollOffset', 'sidebarPosition']
                 }
             },
             Tree: {
@@ -1380,6 +1401,15 @@ class UIDesigner {
         if (element.properties.activeTabTextColor) {
             elementDiv.style.setProperty('--active-tab-text-color', this.ccColors[element.properties.activeTabTextColor] || element.properties.activeTabTextColor);
         }
+        if (element.properties.sidebarBackground) {
+            elementDiv.style.setProperty('--sidebar-bg-color', this.ccColors[element.properties.sidebarBackground] || element.properties.sidebarBackground);
+        }
+        if (element.properties.activeTabBackground && element.type === 'SideNav') {
+            elementDiv.style.setProperty('--active-nav-bg-color', this.ccColors[element.properties.activeTabBackground] || element.properties.activeTabBackground);
+        }
+        if (element.properties.activeTabTextColor && element.type === 'SideNav') {
+            elementDiv.style.setProperty('--active-nav-text-color', this.ccColors[element.properties.activeTabTextColor] || element.properties.activeTabTextColor);
+        }
         
         // Render element content based on type
         this.renderElementContent(elementDiv, element);
@@ -1441,6 +1471,32 @@ class UIDesigner {
                 tabsHtml += '</div>';
                 tabsHtml += '<div style="border: 1px solid #666; flex: 1; padding: 2px; color: var(--fg-color, #fff); font-size: 10px;">Tab Content</div>';
                 elementDiv.innerHTML = `<div style="display: flex; flex-direction: column; height: 100%;">${tabsHtml}</div>`;
+                break;
+
+            case 'SideNav':
+                const navTabs = properties.tabs || [];
+                const activeNavTab = properties.activeTab || 1;
+                const sidebarWidth = properties.sidebarWidth || 12;
+                const sidebarPosition = properties.sidebarPosition || 'left';
+                const sidebarBg = 'var(--sidebar-bg-color, gray)';
+                const activeNavBg = 'var(--active-nav-bg-color, white)';
+                const activeNavColor = 'var(--active-nav-text-color, black)';
+                
+                let sidebarHtml = '';
+                navTabs.forEach((tab, index) => {
+                    const isActive = (index + 1) === activeNavTab;
+                    const navBg = isActive ? activeNavBg : sidebarBg;
+                    const navColor = isActive ? activeNavColor : 'var(--fg-color, white)';
+                    sidebarHtml += `<div style="padding: 2px 4px; background: ${navBg}; color: ${navColor}; border-bottom: 1px solid #444; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${tab.title}</div>`;
+                });
+                
+                const contentArea = '<div style="flex: 1; padding: 2px; color: var(--fg-color, #fff); font-size: 10px; border: 1px solid #666;">Navigation Content</div>';
+                
+                if (sidebarPosition === 'right') {
+                    elementDiv.innerHTML = `<div style="display: flex; height: 100%;">${contentArea}<div style="width: ${sidebarWidth * 8}px; background: ${sidebarBg}; border-left: 1px solid #666; overflow: hidden;">${sidebarHtml}</div></div>`;
+                } else {
+                    elementDiv.innerHTML = `<div style="display: flex; height: 100%;"><div style="width: ${sidebarWidth * 8}px; background: ${sidebarBg}; border-right: 1px solid #666; overflow: hidden;">${sidebarHtml}</div>${contentArea}</div>`;
+                }
                 break;
                 
             case 'ProgressBar':
@@ -1813,7 +1869,7 @@ class UIDesigner {
         } else if (Array.isArray(value)) {
             if (property === 'items' && (element.type === 'Dropdown' || element.type === 'List' || element.type === 'Menu')) {
                 inputHtml = this.createItemsManager(element, property);
-            } else if (property === 'tabs' && element.type === 'TabControl') {
+            } else if (property === 'tabs' && (element.type === 'TabControl' || element.type === 'SideNav')) {
                 inputHtml = this.createTabsManager(element, property);
             } else if (property === 'nodes' && element.type === 'Tree') {
                 inputHtml = this.createNodesManager(element, property);
@@ -4103,6 +4159,12 @@ class UIDesigner {
                 // Skip x, y, width, height as they're handled above
                 if (['x', 'y', 'width', 'height'].includes(key)) return;
                 
+                // Special handling for SideNav tabs - they need to be added using newTab() method
+                if (key === 'tabs' && element.type === 'SideNav' && Array.isArray(value) && value.length > 0) {
+                    // Don't use setTabs for SideNav, we'll add tabs individually after the element creation
+                    return;
+                }
+                
                 if (elementDef.defaultProps[key] !== value) {
                     const propertyMethod = this.getBasaltPropertyMethod(key);
                     if (propertyMethod) {
@@ -4118,7 +4180,7 @@ class UIDesigner {
                             if (value.length === 0) {
                                 code += `    :${propertyMethod}({})\n`;
                             } else {
-                                // Special handling for tabs property
+                                // Special handling for tabs property (for TabControl)
                                 if (key === 'tabs') {
                                     const tabs = value.map(tab => {
                                         if (typeof tab === 'object' && tab.title) {
@@ -4147,6 +4209,14 @@ class UIDesigner {
                     }
                 }
             });
+            
+            // Add SideNav tabs using newTab() method after element creation
+            if (element.type === 'SideNav' && element.properties.tabs && Array.isArray(element.properties.tabs) && element.properties.tabs.length > 0) {
+                element.properties.tabs.forEach(tab => {
+                    const tabTitle = typeof tab === 'object' && tab.title ? tab.title : (typeof tab === 'string' ? tab : 'Tab');
+                    code += `${varName}:newTab("${tabTitle}")\n`;
+                });
+            }
             
             code += '\n';
         });
@@ -4190,7 +4260,12 @@ class UIDesigner {
             tabs: 'setTabs',
             headerBackground: 'setHeaderBackground',
             activeTabBackground: 'setActiveTabBackground',
-            activeTabTextColor: 'setActiveTabTextColor'
+            activeTabTextColor: 'setActiveTabTextColor',
+            // SideNav properties
+            sidebarWidth: 'setSidebarWidth',
+            sidebarBackground: 'setSidebarBackground',
+            sidebarScrollOffset: 'setSidebarScrollOffset',
+            sidebarPosition: 'setSidebarPosition'
         };
         return methodMap[key] || `set${key.charAt(0).toUpperCase() + key.slice(1)}`;
     }
@@ -4559,7 +4634,7 @@ class UIDesigner {
     
     getElementCategory(elementType) {
         if (this.currentFramework === 'basalt') {
-            if (['Frame', 'Container', 'Flexbox'].includes(elementType)) {
+            if (['Frame', 'Container', 'Flexbox', 'SideNav'].includes(elementType)) {
                 return 'Containers';
             } else if (['Label', 'Button', 'Input', 'Checkbox', 'Radio', 'Switch'].includes(elementType)) {
                 return 'Basic';
