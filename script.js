@@ -1,4 +1,4 @@
-// UI Designer for Basalt 2, PixelUI, and PrimeUI - Main JavaScript
+// UI Designer for Basalt 2, PixelUI, KubeUI, and PrimeUI - Main JavaScript
 class UIDesigner {
     constructor() {
         this.canvas = document.getElementById('canvas');
@@ -33,6 +33,7 @@ class UIDesigner {
         this.basaltElements = this.initializeBasaltElements();
         this.pixelUIElements = this.initializePixelUIElements();
         this.primeUIElements = this.initializePrimeUIElements();
+        this.kubeUIElements = this.initializeKubeUIElements();
         this.ccColors = this.initializeCCColors();
         
         this.init();
@@ -80,7 +81,8 @@ class UIDesigner {
         if (!elementPalette) return;
         
         const elements = this.currentFramework === 'basalt' ? this.basaltElements : 
-                        this.currentFramework === 'pixelui' ? this.pixelUIElements : this.primeUIElements;
+                        this.currentFramework === 'pixelui' ? this.pixelUIElements :
+                        this.currentFramework === 'kubeui' ? this.kubeUIElements : this.primeUIElements;
         
         elementPalette.innerHTML = '';
         
@@ -115,7 +117,7 @@ class UIDesigner {
             let category = 'Basic';
             
             if (this.currentFramework === 'basalt') {
-                if (['Frame', 'Container', 'Flexbox', 'SideNav'].includes(element.type)) {
+                if (['Frame', 'Container', 'Flexbox', 'SideNav', 'Panel'].includes(element.type)) {
                     category = 'Containers';
                 } else if (['Label', 'Button', 'Input', 'Checkbox', 'Radio', 'Switch'].includes(element.type)) {
                     category = 'Basic';
@@ -175,6 +177,9 @@ class UIDesigner {
         'Slider': '🎚️',
         'Graph': '📈',
         'Image': '🖼️',
+        
+        // KubeUI elements
+        'Panel': '📋',
         
         // PixelUI elements
         'Widget': '📦',
@@ -1077,6 +1082,79 @@ class UIDesigner {
             'brown': 0x1000, 'green': 0x2000, 'red': 0x4000, 'black': 0x8000
         };
     }
+
+    initializeKubeUIElements() {
+        return {
+            Button: {
+                type: 'Button',
+                defaultProps: {
+                    x: 10, y: 10, w: 30, h: 10,
+                    text: 'Button',
+                    bgColor: 'blue', textColor: 'white', hoverColor: 'lightBlue',
+                    enabled: true, hovered: false, pressed: false
+                },
+                properties: {
+                    basic: ['x', 'y', 'w', 'h', 'text', 'enabled'],
+                    appearance: ['bgColor', 'textColor', 'hoverColor'],
+                    events: ['callback']
+                },
+                category: 'Basic'
+            },
+            Panel: {
+                type: 'Panel',
+                defaultProps: {
+                    x: 5, y: 5, w: 60, h: 50,
+                    bgColor: 'black', borderColor: 'gray'
+                },
+                properties: {
+                    basic: ['x', 'y', 'w', 'h'],
+                    appearance: ['bgColor', 'borderColor'],
+                    container: ['children']
+                },
+                category: 'Layout'
+            },
+            Label: {
+                type: 'Label',
+                defaultProps: {
+                    x: 10, y: 10, w: 20, h: 5,
+                    text: 'Label',
+                    textColor: 'white', scale: 1
+                },
+                properties: {
+                    basic: ['x', 'y', 'w', 'h', 'text', 'scale'],
+                    appearance: ['textColor'],
+                    text: ['setText']
+                },
+                category: 'Basic'
+            },
+            Checkbox: {
+                type: 'Checkbox',
+                defaultProps: {
+                    x: 10, y: 20, w: 25, h: 8,
+                    label: 'Checkbox',
+                    checked: false, enabled: true, size: 8
+                },
+                properties: {
+                    basic: ['x', 'y', 'w', 'h', 'label', 'checked', 'enabled', 'size'],
+                    events: ['callback']
+                },
+                category: 'Input'
+            },
+            Slider: {
+                type: 'Slider',
+                defaultProps: {
+                    x: 10, y: 30, w: 30, h: 6,
+                    min: 0, max: 100, value: 50,
+                    enabled: true, dragging: false
+                },
+                properties: {
+                    basic: ['x', 'y', 'w', 'h', 'min', 'max', 'value', 'enabled'],
+                    events: ['callback']
+                },
+                category: 'Input'
+            }
+        };
+    }
     
     setupEventListeners() {
         // Terminal size controls
@@ -1161,8 +1239,10 @@ class UIDesigner {
             const elementType = e.dataTransfer.getData('text/plain');
             if (elementType) {
                 const rect = this.canvas.getBoundingClientRect();
-                const x = Math.floor((e.clientX - rect.left) / this.cellWidth) + 1;
-                const y = Math.floor((e.clientY - rect.top) / this.cellHeight) + 1;
+                const cellW = this.effectiveCellWidth || this.cellWidth;
+                const cellH = this.effectiveCellHeight || this.cellHeight;
+                const x = Math.floor((e.clientX - rect.left) / cellW) + 1;
+                const y = Math.floor((e.clientY - rect.top) / cellH) + 1;
                 
                 this.createElement(elementType, { x, y });
             }
@@ -1249,8 +1329,25 @@ class UIDesigner {
     }
     
     updateTerminalSize() {
-        const canvasWidth = this.terminalWidth * this.cellWidth;
-        const canvasHeight = this.terminalHeight * this.cellHeight;
+        // For KubeUI, use higher resolution coordinates
+        let effectiveWidth, effectiveHeight, effectiveCellWidth, effectiveCellHeight;
+        
+        if (this.currentFramework === 'kubeui') {
+            // KubeUI uses pixelbox with higher resolution
+            // Based on the example: Panel(5,5,90,80) on ~51x19 terminal = ~2x resolution
+            effectiveWidth = this.terminalWidth * 2; // 51 -> ~102 pixels
+            effectiveHeight = this.terminalHeight * 3; // 19 -> ~57 pixels
+            effectiveCellWidth = this.cellWidth / 2; // Smaller cells for higher precision
+            effectiveCellHeight = this.cellHeight / 3;
+        } else {
+            effectiveWidth = this.terminalWidth;
+            effectiveHeight = this.terminalHeight;
+            effectiveCellWidth = this.cellWidth;
+            effectiveCellHeight = this.cellHeight;
+        }
+        
+        const canvasWidth = effectiveWidth * effectiveCellWidth;
+        const canvasHeight = effectiveHeight * effectiveCellHeight;
         
         // Set the canvas container size to match the calculated dimensions
         const canvas = document.querySelector('.canvas');
@@ -1261,11 +1358,18 @@ class UIDesigner {
         this.terminalPreview.style.width = canvasWidth + 'px';
         this.terminalPreview.style.height = canvasHeight + 'px';
         
+        // Store effective dimensions for use in other methods
+        this.effectiveWidth = effectiveWidth;
+        this.effectiveHeight = effectiveHeight;
+        this.effectiveCellWidth = effectiveCellWidth;
+        this.effectiveCellHeight = effectiveCellHeight;
+        
         // Update canvas info
         const presetSelect = document.getElementById('terminalPreset');
         const selectedPreset = presetSelect.options[presetSelect.selectedIndex].text;
+        const frameworkNote = this.currentFramework === 'kubeui' ? ' (High-Res)' : '';
         document.getElementById('canvasInfo').textContent = 
-            `${this.terminalWidth}×${this.terminalHeight} ${selectedPreset}`;
+            `${this.terminalWidth}×${this.terminalHeight} ${selectedPreset}${frameworkNote}`;
         
         this.createTerminalGrid();
         this.updateElementPositions();
@@ -1284,14 +1388,24 @@ class UIDesigner {
             grid.classList.add('visible');
         }
         
-        for (let y = 0; y < this.terminalHeight; y++) {
-            for (let x = 0; x < this.terminalWidth; x++) {
+        // Use effective dimensions for grid creation
+        const gridWidth = this.effectiveWidth || this.terminalWidth;
+        const gridHeight = this.effectiveHeight || this.terminalHeight;
+        const cellW = this.effectiveCellWidth || this.cellWidth;
+        const cellH = this.effectiveCellHeight || this.cellHeight;
+        
+        // For KubeUI, show a slightly coarser grid to reduce clutter
+        const gridStepX = this.currentFramework === 'kubeui' ? 3 : 1;
+        const gridStepY = this.currentFramework === 'kubeui' ? 3 : 1;
+        
+        for (let y = 0; y < gridHeight; y += gridStepY) {
+            for (let x = 0; x < gridWidth; x += gridStepX) {
                 const cell = document.createElement('div');
                 cell.className = 'terminal-cell';
-                cell.style.left = (x * this.cellWidth) + 'px';
-                cell.style.top = (y * this.cellHeight) + 'px';
-                cell.style.setProperty('--cell-width', this.cellWidth + 'px');
-                cell.style.setProperty('--cell-height', this.cellHeight + 'px');
+                cell.style.left = (x * cellW) + 'px';
+                cell.style.top = (y * cellH) + 'px';
+                cell.style.setProperty('--cell-width', (cellW * gridStepX) + 'px');
+                cell.style.setProperty('--cell-height', (cellH * gridStepY) + 'px');
                 grid.appendChild(cell);
             }
         }
@@ -1370,12 +1484,20 @@ class UIDesigner {
     }
     
     updateElementDiv(elementDiv, element) {
-        const { x, y, width, height, background, foreground, visible, bgColor, fgColor } = element.properties;
+        const { x, y, width, height, w, h, background, foreground, visible, bgColor, fgColor } = element.properties;
         
-        elementDiv.style.left = ((x - 1) * this.cellWidth) + 'px';
-        elementDiv.style.top = ((y - 1) * this.cellHeight) + 'px';
-        elementDiv.style.width = (width * this.cellWidth) + 'px';
-        elementDiv.style.height = (height * this.cellHeight) + 'px';
+        // Handle both width/height (Basalt, PixelUI, PrimeUI) and w/h (KubeUI) property names
+        const elementWidth = width || w || 1;
+        const elementHeight = height || h || 1;
+        
+        // Use effective cell dimensions for positioning
+        const cellW = this.effectiveCellWidth || this.cellWidth;
+        const cellH = this.effectiveCellHeight || this.cellHeight;
+        
+        elementDiv.style.left = ((x - 1) * cellW) + 'px';
+        elementDiv.style.top = ((y - 1) * cellH) + 'px';
+        elementDiv.style.width = (elementWidth * cellW) + 'px';
+        elementDiv.style.height = (elementHeight * cellH) + 'px';
         elementDiv.style.display = (visible !== false) ? 'block' : 'none';
         
         // Apply CC colors - handle both Basalt/PixelUI (background) and PrimeUI (bgColor) naming
@@ -1606,11 +1728,20 @@ class UIDesigner {
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
             
-            const deltaX = Math.round((e.clientX - dragStart.x) / this.cellWidth);
-            const deltaY = Math.round((e.clientY - dragStart.y) / this.cellHeight);
+            const cellW = this.effectiveCellWidth || this.cellWidth;
+            const cellH = this.effectiveCellHeight || this.cellHeight;
+            const maxWidth = this.effectiveWidth || this.terminalWidth;
+            const maxHeight = this.effectiveHeight || this.terminalHeight;
             
-            const newX = Math.max(1, Math.min(this.terminalWidth - element.properties.width + 1, elementStart.x + deltaX));
-            const newY = Math.max(1, Math.min(this.terminalHeight - element.properties.height + 1, elementStart.y + deltaY));
+            const deltaX = Math.round((e.clientX - dragStart.x) / cellW);
+            const deltaY = Math.round((e.clientY - dragStart.y) / cellH);
+            
+            // Handle both width/height and w/h property names
+            const elementWidth = element.properties.width || element.properties.w || 1;
+            const elementHeight = element.properties.height || element.properties.h || 1;
+            
+            const newX = Math.max(1, Math.min(maxWidth - elementWidth + 1, elementStart.x + deltaX));
+            const newY = Math.max(1, Math.min(maxHeight - elementHeight + 1, elementStart.y + deltaY));
             
             // Update position directly without triggering state save during drag
             element.properties.x = newX;
@@ -1653,8 +1784,9 @@ class UIDesigner {
                 
                 resizeStart.x = e.clientX;
                 resizeStart.y = e.clientY;
-                elementStart.width = this.selectedElement.properties.width;
-                elementStart.height = this.selectedElement.properties.height;
+                // Handle both width/height and w/h property names
+                elementStart.width = this.selectedElement.properties.width || this.selectedElement.properties.w || 1;
+                elementStart.height = this.selectedElement.properties.height || this.selectedElement.properties.h || 1;
                 elementStart.x = this.selectedElement.properties.x;
                 elementStart.y = this.selectedElement.properties.y;
             });
@@ -1662,8 +1794,13 @@ class UIDesigner {
             document.addEventListener('mousemove', (e) => {
                 if (!isResizing) return;
                 
-                const deltaX = Math.round((e.clientX - resizeStart.x) / this.cellWidth);
-                const deltaY = Math.round((e.clientY - resizeStart.y) / this.cellHeight);
+                const cellW = this.effectiveCellWidth || this.cellWidth;
+                const cellH = this.effectiveCellHeight || this.cellHeight;
+                const maxWidth = this.effectiveWidth || this.terminalWidth;
+                const maxHeight = this.effectiveHeight || this.terminalHeight;
+                
+                const deltaX = Math.round((e.clientX - resizeStart.x) / cellW);
+                const deltaY = Math.round((e.clientY - resizeStart.y) / cellH);
                 
                 let newWidth = elementStart.width;
                 let newHeight = elementStart.height;
@@ -1683,12 +1820,18 @@ class UIDesigner {
                 }
                 
                 // Clamp to terminal bounds
-                newWidth = Math.min(newWidth, this.terminalWidth - newX + 1);
-                newHeight = Math.min(newHeight, this.terminalHeight - newY + 1);
+                newWidth = Math.min(newWidth, maxWidth - newX + 1);
+                newHeight = Math.min(newHeight, maxHeight - newY + 1);
                 
                 // Update properties directly during resize
-                this.selectedElement.properties.width = newWidth;
-                this.selectedElement.properties.height = newHeight;
+                // Use appropriate property names based on framework
+                if (this.currentFramework === 'kubeui') {
+                    this.selectedElement.properties.w = newWidth;
+                    this.selectedElement.properties.h = newHeight;
+                } else {
+                    this.selectedElement.properties.width = newWidth;
+                    this.selectedElement.properties.height = newHeight;
+                }
                 this.selectedElement.properties.x = newX;
                 this.selectedElement.properties.y = newY;
                 
@@ -2455,8 +2598,12 @@ class UIDesigner {
             // Create new element with offset position
             const newElement = JSON.parse(JSON.stringify(this.clipboard));
             newElement.id = 'element_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            newElement.properties.x = Math.min(newElement.properties.x + 2, this.terminalWidth - newElement.properties.width);
-            newElement.properties.y = Math.min(newElement.properties.y + 2, this.terminalHeight - newElement.properties.height);
+            // Handle both width/height and w/h property names
+            const elementWidth = newElement.properties.width || newElement.properties.w || 1;
+            const elementHeight = newElement.properties.height || newElement.properties.h || 1;
+            
+            newElement.properties.x = Math.min(newElement.properties.x + 2, this.terminalWidth - elementWidth);
+            newElement.properties.y = Math.min(newElement.properties.y + 2, this.terminalHeight - elementHeight);
             
             this.elements.set(newElement.id, newElement);
             this.renderElement(newElement);
@@ -2567,11 +2714,16 @@ class UIDesigner {
         // Switch framework
         this.currentFramework = framework;
         
+        // Update terminal size and grid when switching to/from KubeUI
+        this.updateTerminalSize();
+        
         // Update title
         if (this.currentFramework === 'basalt') {
             logoTitle.textContent = 'Basalt 2 UI Designer';
         } else if (this.currentFramework === 'pixelui') {
             logoTitle.textContent = 'PixelUI Designer';
+        } else if (this.currentFramework === 'kubeui') {
+            logoTitle.textContent = 'KubeUI Designer';
         } else if (this.currentFramework === 'primeui') {
             logoTitle.textContent = 'PrimeUI Designer';
         }
@@ -2585,7 +2737,8 @@ class UIDesigner {
         const modalTitle = document.querySelector('#exportModal h3');
         if (modalTitle) {
             modalTitle.textContent = `Export ${this.currentFramework === 'basalt' ? 'Basalt' : 
-                                             this.currentFramework === 'pixelui' ? 'PixelUI' : 'PrimeUI'} Code`;
+                                             this.currentFramework === 'pixelui' ? 'PixelUI' :
+                                             this.currentFramework === 'kubeui' ? 'KubeUI' : 'PrimeUI'} Code`;
         }
         
         this.showModal('exportModal');
@@ -2816,14 +2969,17 @@ class UIDesigner {
         try {
             this.clearCanvasForImport();
             
-            // Detect if this is PixelUI or Basalt code
+            // Detect framework type
             const isPixelUI = luaCode.includes('PixelUI');
             const isBasalt = luaCode.includes('basalt') && luaCode.includes('createFrame');
+            const isKubeUI = luaCode.includes('kubeui') || (luaCode.includes('gui.') && luaCode.includes('manager'));
             
             if (isPixelUI) {
                 this.importPixelUICode(luaCode);
             } else if (isBasalt) {
                 this.importBasaltCode(luaCode);
+            } else if (isKubeUI) {
+                this.importKubeUICode(luaCode);
             } else {
                 throw new Error('Unrecognized Lua code format');
             }
@@ -2962,6 +3118,126 @@ class UIDesigner {
             this.updateElementProperty(element, 'width', element.properties.width);
             this.updateElementProperty(element, 'height', element.properties.height);
         }
+    }
+
+    importKubeUICode(luaCode) {
+        // Switch to KubeUI framework
+        this.switchToFramework('kubeui');
+        
+        // Extract terminal size if available (not always present in KubeUI)
+        const sizeMatch = luaCode.match(/getSize\(\)/);
+        if (sizeMatch) {
+            // Keep default sizes since KubeUI doesn't typically specify exact sizes
+            this.terminalWidth = 51;
+            this.terminalHeight = 19;
+            document.getElementById('terminalWidth').value = this.terminalWidth;
+            document.getElementById('terminalHeight').value = this.terminalHeight;
+            this.updateTerminalSize();
+        }
+        
+        // Extract elements - pattern: manager:add(gui.ElementType(...))
+        const elementMatches = luaCode.matchAll(/local\s+(\w+)\s*=\s*manager:add\(gui\.(\w+)\(([^)]+)\)/g);
+        const elements = {};
+        
+        for (const match of elementMatches) {
+            const varName = match[1];
+            const elementType = match[2];
+            const params = match[3];
+            
+            // Create element
+            const element = this.createElement(elementType);
+            elements[varName] = element;
+            
+            // Parse parameters
+            const paramArray = this.parseKubeUIParams(params);
+            
+            // Set basic position and size properties
+            if (paramArray.length >= 2) {
+                element.properties.x = parseInt(paramArray[0]) || 1;
+                element.properties.y = parseInt(paramArray[1]) || 1;
+            }
+            
+            if (elementType === 'Button' || elementType === 'Panel') {
+                if (paramArray.length >= 4) {
+                    element.properties.w = parseInt(paramArray[2]) || 10;
+                    element.properties.h = parseInt(paramArray[3]) || 3;
+                }
+                if (elementType === 'Button' && paramArray.length >= 5) {
+                    // Remove quotes from text
+                    element.properties.text = paramArray[4].replace(/['"]/g, '');
+                }
+            } else if (elementType === 'Label' && paramArray.length >= 3) {
+                element.properties.text = paramArray[2].replace(/['"]/g, '');
+            } else if (elementType === 'Checkbox') {
+                if (paramArray.length >= 3) {
+                    element.properties.label = paramArray[2].replace(/['"]/g, '');
+                }
+                if (paramArray.length >= 4) {
+                    element.properties.checked = paramArray[3] === 'true';
+                }
+            } else if (elementType === 'Slider' && paramArray.length >= 6) {
+                element.properties.w = parseInt(paramArray[2]) || 20;
+                element.properties.min = parseInt(paramArray[3]) || 0;
+                element.properties.max = parseInt(paramArray[4]) || 100;
+                element.properties.value = parseInt(paramArray[5]) || 50;
+            }
+            
+            // Extract property assignments for this variable
+            const propRegex = new RegExp(`${varName}\\.(\\w+)\\s*=\\s*([^\\n]+)`, 'g');
+            let propMatch;
+            
+            while ((propMatch = propRegex.exec(luaCode)) !== null) {
+                const propName = propMatch[1];
+                const value = propMatch[2].trim();
+                
+                let parsedValue = this.parseLuaValue(value);
+                
+                // Handle color properties
+                if (propName.includes('Color') && typeof parsedValue === 'string' && parsedValue.startsWith('colors.')) {
+                    parsedValue = parsedValue.replace('colors.', '');
+                }
+                
+                element.properties[propName] = parsedValue;
+            }
+            
+            // Update element visual representation
+            this.updateElementProperty(element, 'x', element.properties.x);
+            this.updateElementProperty(element, 'y', element.properties.y);
+            this.updateElementProperty(element, 'w', element.properties.w);
+            this.updateElementProperty(element, 'h', element.properties.h);
+        }
+    }
+    
+    parseKubeUIParams(paramStr) {
+        // Simple parameter parsing for KubeUI function calls
+        const params = [];
+        let current = '';
+        let inQuotes = false;
+        let quoteChar = '';
+        
+        for (let i = 0; i < paramStr.length; i++) {
+            const char = paramStr[i];
+            
+            if (!inQuotes && (char === '"' || char === "'")) {
+                inQuotes = true;
+                quoteChar = char;
+                current += char;
+            } else if (inQuotes && char === quoteChar) {
+                inQuotes = false;
+                current += char;
+            } else if (!inQuotes && char === ',') {
+                params.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        
+        if (current.trim()) {
+            params.push(current.trim());
+        }
+        
+        return params;
     }
     
     convertPixelUIToXCCType(pixelUIType) {
@@ -3204,7 +3480,8 @@ class UIDesigner {
     
     getCurrentElements() {
         return this.currentFramework === 'basalt' ? this.basaltElements : 
-               this.currentFramework === 'pixelui' ? this.pixelUIElements : this.primeUIElements;
+               this.currentFramework === 'pixelui' ? this.pixelUIElements :
+               this.currentFramework === 'kubeui' ? this.kubeUIElements : this.primeUIElements;
     }
     
     generateCode() {
@@ -3212,6 +3489,8 @@ class UIDesigner {
             return this.generateBasaltCode();
         } else if (this.currentFramework === 'pixelui') {
             return this.generatePixelUICode();
+        } else if (this.currentFramework === 'kubeui') {
+            return this.generateKubeUICode();
         } else if (this.currentFramework === 'primeui') {
             return this.generatePrimeUICode();
         }
@@ -4469,6 +4748,129 @@ class UIDesigner {
         
         return code;
     }
+
+    generateKubeUICode() {
+        // Check if smart margins are enabled
+        const smartMarginsEnabled = document.getElementById('smartMargins')?.checked || false;
+        
+        let code = '-- KubeUI Generated Code\n';
+        code += '-- Generated by XCC Designer\n';
+        code += 'local gui = require("kubeui")\n\n';
+        
+        if (smartMarginsEnabled) {
+            code += '-- Smart Margin System: Auto-adapt to different screen sizes\n';
+            code += 'local w, h = term.getSize()\n';
+            code += `local designWidth, designHeight = ${this.terminalWidth}, ${this.terminalHeight}\n`;
+            code += 'local scaleX, scaleY = w / designWidth, h / designHeight\n';
+            code += 'local function smartPos(x, y) return math.floor(x * scaleX + 0.5), math.floor(y * scaleY + 0.5) end\n';
+            code += 'local function smartSize(w, h) return math.max(1, math.floor(w * scaleX + 0.5)), math.max(1, math.floor(h * scaleY + 0.5)) end\n\n';
+        }
+        
+        code += '-- Create GUI manager\n';
+        code += 'local manager = gui.new()\n\n';
+        
+        // Add elements
+        const sortedElements = Array.from(this.elements.values()).sort((a, b) => {
+            const aZ = a.properties.z || 0;
+            const bZ = b.properties.z || 0;
+            return aZ - bZ;
+        });
+        
+        sortedElements.forEach((element, index) => {
+            const varName = `element${index + 1}`;
+            const elementDef = this.getCurrentElements()[element.type];
+            
+            code += `-- ${element.type} element\n`;
+            
+            // Calculate position and size
+            const x = element.properties.x || elementDef.defaultProps.x;
+            const y = element.properties.y || elementDef.defaultProps.y;
+            const w = element.properties.w || element.properties.width || elementDef.defaultProps.w;
+            const h = element.properties.h || element.properties.height || elementDef.defaultProps.h;
+            
+            const posParams = smartMarginsEnabled ? 
+                `smartPos(${x}, ${y})` : 
+                `${x}, ${y}`;
+            
+            const sizeParams = (w !== undefined && h !== undefined) ? 
+                (smartMarginsEnabled ? `, smartSize(${w}, ${h})` : `, ${w}, ${h}`) : '';
+            
+            switch (element.type) {
+                case 'Button':
+                    const text = element.properties.text || 'Button';
+                    code += `local ${varName} = manager:add(gui.Button(${posParams}${sizeParams}, "${text}", function()\n`;
+                    code += `    -- Button click handler\n`;
+                    code += `end))\n`;
+                    
+                    // Add color properties if different from default
+                    if (element.properties.bgColor && element.properties.bgColor !== 'blue') {
+                        code += `${varName}.bgColor = colors.${element.properties.bgColor}\n`;
+                    }
+                    if (element.properties.textColor && element.properties.textColor !== 'white') {
+                        code += `${varName}.textColor = colors.${element.properties.textColor}\n`;
+                    }
+                    if (element.properties.hoverColor && element.properties.hoverColor !== 'lightBlue') {
+                        code += `${varName}.hoverColor = colors.${element.properties.hoverColor}\n`;
+                    }
+                    break;
+                    
+                case 'Panel':
+                    code += `local ${varName} = manager:add(gui.Panel(${posParams}${sizeParams}))\n`;
+                    
+                    if (element.properties.bgColor && element.properties.bgColor !== 'black') {
+                        code += `${varName}.bgColor = colors.${element.properties.bgColor}\n`;
+                    }
+                    if (element.properties.borderColor && element.properties.borderColor !== 'gray') {
+                        code += `${varName}.borderColor = colors.${element.properties.borderColor}\n`;
+                    }
+                    break;
+                    
+                case 'Label':
+                    const labelText = element.properties.text || 'Label';
+                    code += `local ${varName} = manager:add(gui.Label(${posParams}, "${labelText}"))\n`;
+                    
+                    if (element.properties.textColor && element.properties.textColor !== 'white') {
+                        code += `${varName}.textColor = colors.${element.properties.textColor}\n`;
+                    }
+                    if (element.properties.scale && element.properties.scale !== 1) {
+                        code += `${varName}.scale = ${element.properties.scale}\n`;
+                    }
+                    break;
+                    
+                case 'Checkbox':
+                    const label = element.properties.label || 'Checkbox';
+                    const checked = element.properties.checked ? 'true' : 'false';
+                    code += `local ${varName} = manager:add(gui.Checkbox(${posParams}, "${label}", ${checked}, function(checked)\n`;
+                    code += `    -- Checkbox change handler\n`;
+                    code += `end))\n`;
+                    
+                    if (element.properties.size && element.properties.size !== 8) {
+                        code += `${varName}.size = ${element.properties.size}\n`;
+                    }
+                    break;
+                    
+                case 'Slider':
+                    const min = element.properties.min || 0;
+                    const max = element.properties.max || 100;
+                    const value = element.properties.value || min;
+                    code += `local ${varName} = manager:add(gui.Slider(${posParams}, ${w}, ${min}, ${max}, ${value}, function(value)\n`;
+                    code += `    -- Slider value change handler\n`;
+                    code += `end))\n`;
+                    break;
+                    
+                default:
+                    code += `-- ${element.type} (custom implementation needed)\n`;
+                    break;
+            }
+            
+            code += '\n';
+        });
+        
+        code += '-- Start the GUI\n';
+        code += 'manager:run()\n';
+        
+        return code;
+    }
     
     showPreviewModal() {
         this.showModal('previewModal');
@@ -4634,7 +5036,7 @@ class UIDesigner {
     
     getElementCategory(elementType) {
         if (this.currentFramework === 'basalt') {
-            if (['Frame', 'Container', 'Flexbox', 'SideNav'].includes(elementType)) {
+            if (['Frame', 'Container', 'Flexbox', 'SideNav', 'Panel'].includes(elementType)) {
                 return 'Containers';
             } else if (['Label', 'Button', 'Input', 'Checkbox', 'Radio', 'Switch'].includes(elementType)) {
                 return 'Basic';
@@ -4714,8 +5116,12 @@ class UIDesigner {
             previewEl.style.position = 'absolute';
             previewEl.style.left = ((element.properties.x - 1) * 8) + 'px';
             previewEl.style.top = ((element.properties.y - 1) * 12) + 'px';
-            previewEl.style.width = (element.properties.width * 8) + 'px';
-            previewEl.style.height = (element.properties.height * 12) + 'px';
+            // Handle both width/height and w/h property names
+            const elementWidth = element.properties.width || element.properties.w || 1;
+            const elementHeight = element.properties.height || element.properties.h || 1;
+            
+            previewEl.style.width = (elementWidth * 8) + 'px';
+            previewEl.style.height = (elementHeight * 12) + 'px';
             previewEl.className = `cc-color-${element.properties.background}`;
             
             // Simple content rendering
