@@ -42,6 +42,7 @@ class UIDesigner {
     init() {
         this.setupEventListeners();
         this.setupFrameworkTabs();
+        this.updatePageTitle(); // Set initial page title
         this.updateTerminalSize();
         this.createTerminalGrid();
         this.loadPreset('computer');
@@ -1217,6 +1218,108 @@ class UIDesigner {
                 this.selectElement(null);
             }
         });
+        
+        // Sidebar toggle functionality
+        this.setupSidebarControls();
+    }
+    
+    setupSidebarControls() {
+        // Sidebar toggle buttons
+        const leftToggle = document.getElementById('leftSidebarToggle');
+        const rightToggle = document.getElementById('rightSidebarToggle');
+        const leftSidebar = document.getElementById('leftSidebar');
+        const rightSidebar = document.getElementById('rightSidebar');
+        const leftClose = document.getElementById('leftSidebarClose');
+        const rightClose = document.getElementById('rightSidebarClose');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        // Toggle left sidebar
+        if (leftToggle) {
+            leftToggle.addEventListener('click', () => {
+                this.toggleSidebar('left');
+            });
+        }
+        
+        // Toggle right sidebar
+        if (rightToggle) {
+            rightToggle.addEventListener('click', () => {
+                this.toggleSidebar('right');
+            });
+        }
+        
+        // Close buttons
+        if (leftClose) {
+            leftClose.addEventListener('click', () => {
+                this.closeSidebar('left');
+            });
+        }
+        
+        if (rightClose) {
+            rightClose.addEventListener('click', () => {
+                this.closeSidebar('right');
+            });
+        }
+        
+        // Close sidebars on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeSidebar('both');
+            }
+        });
+    }
+    
+    toggleSidebar(side) {
+        const leftSidebar = document.getElementById('leftSidebar');
+        const rightSidebar = document.getElementById('rightSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        if (side === 'left') {
+            const isOpen = leftSidebar.classList.contains('open');
+            if (isOpen) {
+                this.closeSidebar('left');
+            } else {
+                // Close right sidebar if open
+                this.closeSidebar('right');
+                leftSidebar.classList.add('open');
+                if (overlay) {
+                    overlay.classList.add('active');
+                }
+            }
+        } else if (side === 'right') {
+            const isOpen = rightSidebar.classList.contains('open');
+            if (isOpen) {
+                this.closeSidebar('right');
+            } else {
+                // Close left sidebar if open
+                this.closeSidebar('left');
+                rightSidebar.classList.add('open');
+                if (overlay) {
+                    overlay.classList.add('active');
+                }
+            }
+        }
+    }
+    
+    closeSidebar(side) {
+        const leftSidebar = document.getElementById('leftSidebar');
+        const rightSidebar = document.getElementById('rightSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        if (side === 'left' || side === 'both') {
+            leftSidebar.classList.remove('open');
+        }
+        
+        if (side === 'right' || side === 'both') {
+            rightSidebar.classList.remove('open');
+        }
+        
+        // Hide overlay if no sidebars are open
+        if (side === 'both' || 
+            (!leftSidebar.classList.contains('open') && !rightSidebar.classList.contains('open'))) {
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+        }
     }
     
     setupDragAndDrop() {
@@ -2674,6 +2777,7 @@ class UIDesigner {
         const names = {
             'basalt': 'Basalt 2',
             'pixelui': 'PixelUI',
+            'kubeui': 'KubeUI',
             'primeui': 'PrimeUI'
         };
         return names[framework] || framework;
@@ -2701,6 +2805,7 @@ class UIDesigner {
     switchToFramework(framework) {
         const tabButtons = document.querySelectorAll('.tab-btn');
         const logoTitle = document.getElementById('logoTitle');
+        const pageTitle = document.getElementById('pageTitle');
         
         // Remove active class from all tabs
         tabButtons.forEach(t => t.classList.remove('active'));
@@ -2717,19 +2822,40 @@ class UIDesigner {
         // Update terminal size and grid when switching to/from KubeUI
         this.updateTerminalSize();
         
-        // Update title
+        // Update titles (both page title and logo)
+        let frameworkDisplayName;
         if (this.currentFramework === 'basalt') {
-            logoTitle.textContent = 'Basalt 2 UI Designer';
+            frameworkDisplayName = 'Basalt 2 UI Designer';
         } else if (this.currentFramework === 'pixelui') {
-            logoTitle.textContent = 'PixelUI Designer';
+            frameworkDisplayName = 'PixelUI Designer';
         } else if (this.currentFramework === 'kubeui') {
-            logoTitle.textContent = 'KubeUI Designer';
+            frameworkDisplayName = 'KubeUI Designer';
         } else if (this.currentFramework === 'primeui') {
-            logoTitle.textContent = 'PrimeUI Designer';
+            frameworkDisplayName = 'PrimeUI Designer';
         }
+        
+        logoTitle.textContent = frameworkDisplayName;
+        pageTitle.textContent = frameworkDisplayName;
         
         // Update element palette
         this.updateElementPalette();
+    }
+    
+    updatePageTitle() {
+        const pageTitle = document.getElementById('pageTitle');
+        if (pageTitle) {
+            let frameworkDisplayName;
+            if (this.currentFramework === 'basalt') {
+                frameworkDisplayName = 'Basalt 2 UI Designer';
+            } else if (this.currentFramework === 'pixelui') {
+                frameworkDisplayName = 'PixelUI Designer';
+            } else if (this.currentFramework === 'kubeui') {
+                frameworkDisplayName = 'KubeUI Designer';
+            } else if (this.currentFramework === 'primeui') {
+                frameworkDisplayName = 'PrimeUI Designer';
+            }
+            pageTitle.textContent = frameworkDisplayName;
+        }
     }
     
     showExportModal() {

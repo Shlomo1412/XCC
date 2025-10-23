@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basalt 2 UI Designer</title>
+    <title id="pageTitle">Basalt UI Designer</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,6 +48,12 @@
                 </div>
             </div>
             <div class="header-right">
+                <button class="btn btn-secondary sidebar-toggle" id="leftSidebarToggle" title="Toggle Element Palette">
+                    📦 Elements
+                </button>
+                <button class="btn btn-secondary sidebar-toggle" id="rightSidebarToggle" title="Toggle Properties Panel">
+                    ⚙️ Properties
+                </button>
                 <button class="btn btn-secondary" onclick="designer.undo()" title="Undo (Ctrl+Z)">↶ Undo</button>
                 <button class="btn btn-secondary" onclick="designer.redo()" title="Redo (Ctrl+Y)">↷ Redo</button>
                 <button class="btn btn-secondary" onclick="window.location.href='projects.html'">
@@ -71,9 +77,12 @@
         <!-- Main Content -->
         <div class="main-content">
             <!-- Sidebar - Element Palette -->
-            <aside class="sidebar">
-                <div class="sidebar-section">
+            <aside class="sidebar left-sidebar" id="leftSidebar">
+                <div class="sidebar-header">
                     <h3>Elements</h3>
+                    <button class="sidebar-close" id="leftSidebarClose" title="Close Elements Panel">×</button>
+                </div>
+                <div class="sidebar-section">
                     <div class="element-palette">
                         <!-- Container Elements -->
                         <div class="element-category">
@@ -245,11 +254,12 @@
             </main>
 
             <!-- Properties Panel -->
-            <aside class="properties-panel">
+            <aside class="properties-panel right-sidebar" id="rightSidebar">
                 <div class="properties-header">
                     <h3>Properties</h3>
-                    <div class="element-hierarchy">
+                    <div class="sidebar-controls">
                         <button class="btn btn-sm" id="hierarchyBtn">🌲 Hierarchy</button>
+                        <button class="sidebar-close" id="rightSidebarClose" title="Close Properties Panel">×</button>
                     </div>
                 </div>
                 <div class="properties-content" id="propertiesContent">
@@ -260,6 +270,9 @@
                 </div>
             </aside>
         </div>
+
+        <!-- Sidebar Overlay for mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <!-- Modals -->
         <!-- Export Modal -->
