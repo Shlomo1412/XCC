@@ -2866,8 +2866,15 @@ class UIDesigner {
     
     toggleKubeUIFontSelector() {
         const fontToggle = document.getElementById('kubeUIFontToggle');
+        const fontSelect = document.getElementById('fontModeSelect');
+        
         if (fontToggle) {
             fontToggle.style.display = this.currentFramework === 'kubeui' ? 'block' : 'none';
+            
+            // When showing the toggle, make sure it shows the correct current value
+            if (this.currentFramework === 'kubeui' && fontSelect) {
+                fontSelect.value = this.kubeUIFontMode;
+            }
         }
     }
     
@@ -5371,7 +5378,8 @@ class UIDesigner {
             properties: {
                 width: this.terminalWidth,
                 height: this.terminalHeight,
-                title: name
+                title: name,
+                kubeUIFontMode: this.kubeUIFontMode
             },
             created: now,
             modified: now,
@@ -5404,14 +5412,27 @@ class UIDesigner {
 
         // Set framework
         this.currentFramework = project.framework;
-        this.updateFrameworkTab();
-
-        // Set terminal size
+        
+        // Set terminal size and KubeUI font mode
         if (project.properties) {
             this.terminalWidth = project.properties.width || 51;
             this.terminalHeight = project.properties.height || 19;
+            
+            // Load KubeUI font mode if available
+            if (this.currentFramework === 'kubeui' && project.properties.kubeUIFontMode) {
+                this.kubeUIFontMode = project.properties.kubeUIFontMode;
+                // Update the select element to show the correct value
+                const fontSelect = document.getElementById('fontModeSelect');
+                if (fontSelect) {
+                    fontSelect.value = this.kubeUIFontMode;
+                }
+            }
+            
             this.updateTerminalSize();
         }
+        
+        // Now do the full framework update (this must come after setting terminal size and font mode)
+        this.switchToFramework(this.currentFramework);
 
         // Load elements
         if (project.elements) {
@@ -5448,7 +5469,8 @@ class UIDesigner {
                 project.properties = {
                     width: this.terminalWidth,
                     height: this.terminalHeight,
-                    title: project.name
+                    title: project.name,
+                    kubeUIFontMode: this.kubeUIFontMode
                 };
 
                 projects[editId] = project;
@@ -5473,14 +5495,27 @@ class UIDesigner {
 
                 // Set framework
                 this.currentFramework = project.framework;
-                this.updateFrameworkTab();
-
-                // Set terminal size
+                
+                // Set terminal size and KubeUI font mode
                 if (project.properties) {
                     this.terminalWidth = project.properties.width || 51;
                     this.terminalHeight = project.properties.height || 19;
+                    
+                    // Load KubeUI font mode if available
+                    if (this.currentFramework === 'kubeui' && project.properties.kubeUIFontMode) {
+                        this.kubeUIFontMode = project.properties.kubeUIFontMode;
+                        // Update the select element to show the correct value
+                        const fontSelect = document.getElementById('fontModeSelect');
+                        if (fontSelect) {
+                            fontSelect.value = this.kubeUIFontMode;
+                        }
+                    }
+                    
                     this.updateTerminalSize();
                 }
+                
+                // Now do the full framework update
+                this.switchToFramework(this.currentFramework);
 
                 // Load elements
                 if (project.elements) {
@@ -5517,8 +5552,31 @@ class UIDesigner {
                 tab.classList.add('active');
             }
         });
+        
+        // Update page title
+        this.updatePageTitle();
+        
+        // Update logo title  
+        const logoTitle = document.getElementById('logoTitle');
+        if (logoTitle) {
+            let frameworkDisplayName;
+            if (this.currentFramework === 'basalt') {
+                frameworkDisplayName = 'Basalt 2 UI Designer';
+            } else if (this.currentFramework === 'pixelui') {
+                frameworkDisplayName = 'PixelUI Designer';
+            } else if (this.currentFramework === 'kubeui') {
+                frameworkDisplayName = 'KubeUI Designer';
+            } else if (this.currentFramework === 'primeui') {
+                frameworkDisplayName = 'PrimeUI Designer';
+            }
+            logoTitle.textContent = frameworkDisplayName;
+        }
+        
+        // Show/hide KubeUI font toggle
+        this.toggleKubeUIFontSelector();
+        
+        // Update element palette
         this.updateElementPalette();
-        // this.updateLogoAndTitle(); Not defined. Causes an uncaught error.
     }
 
     // Show notification
