@@ -30,6 +30,7 @@ class UIDesigner {
         this.cellHeight = 18;
         
         this.currentFramework = 'basalt';
+        this.kubeUIFontMode = 'cc'; // 'cc' for regular size, 'kube' for 2.5x bigger
         this.basaltElements = this.initializeBasaltElements();
         this.pixelUIElements = this.initializePixelUIElements();
         this.primeUIElements = this.initializePrimeUIElements();
@@ -43,6 +44,7 @@ class UIDesigner {
         this.setupEventListeners();
         this.setupFrameworkTabs();
         this.updatePageTitle(); // Set initial page title
+        this.toggleKubeUIFontSelector(); // Show/hide font selector based on initial framework
         this.updateTerminalSize();
         this.createTerminalGrid();
         this.loadPreset('computer');
@@ -1173,6 +1175,12 @@ class UIDesigner {
             this.updateTerminalSize();
         });
         
+        // KubeUI font mode control
+        document.getElementById('fontModeSelect').addEventListener('change', (e) => {
+            this.kubeUIFontMode = e.target.value;
+            this.updateKubeUIFontMode();
+        });
+        
         // Canvas controls
         document.getElementById('gridToggle').addEventListener('click', () => {
             this.toggleGrid();
@@ -1645,42 +1653,54 @@ class UIDesigner {
         
         elementDiv.innerHTML = '';
         
+        // Calculate font scale for KubeUI
+        let fontScale = 1;
+        if (this.currentFramework === 'kubeui' && this.kubeUIFontMode === 'kube') {
+            fontScale = 2.5; // KubeUI font is 2.5x bigger
+        }
+        
         switch (type) {
             case 'Label':
-                elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px; line-height: 1;">${properties.text}</span>`;
+                const labelFontSize = Math.round(11 * fontScale);
+                elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: ${labelFontSize}px; line-height: 1;">${properties.text}</span>`;
                 break;
                 
             case 'Button':
-                elementDiv.innerHTML = `<div style="border: 1px solid #666; text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: 11px;">${properties.text}</div>`;
+                const buttonFontSize = Math.round(11 * fontScale);
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: ${buttonFontSize}px;">${properties.text}</div>`;
                 break;
                 
             case 'Input':
                 const displayText = properties.text || properties.placeholder;
-                elementDiv.innerHTML = `<input type="text" value="${properties.text}" placeholder="${properties.placeholder}" style="width: 100%; height: 100%; background: transparent; border: 1px solid #666; color: var(--fg-color, #fff); font-size: 11px; padding: 2px;">`;
+                const inputFontSize = Math.round(11 * fontScale);
+                elementDiv.innerHTML = `<input type="text" value="${properties.text}" placeholder="${properties.placeholder}" style="width: 100%; height: 100%; background: transparent; border: 1px solid #666; color: var(--fg-color, #fff); font-size: ${inputFontSize}px; padding: 2px;">`;
                 break;
                 
             case 'Checkbox':
+                const checkboxFontSize = Math.round(11 * fontScale);
                 if (this.currentFramework === 'basalt') {
                     // For Basalt, text already contains [ ] or [x] format
-                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px;">${properties.text}</span>`;
+                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: ${checkboxFontSize}px;">${properties.text}</span>`;
                 } else {
                     // For PixelUI/PrimeUI, add checkbox brackets
                     const checkmark = properties.checked ? properties.checkedText : '';
-                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: 11px;">[${checkmark}] ${properties.text}</span>`;
+                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: ${checkboxFontSize}px;">[${checkmark}] ${properties.text}</span>`;
                 }
                 break;
                 
             case 'Switch':
                 const switchState = properties.checked ? 'ON' : 'OFF';
                 const switchColor = properties.checked ? 'var(--on-bg-color, lime)' : 'var(--off-bg-color, red)';
-                elementDiv.innerHTML = `<div style="display: flex; align-items: center; font-size: 11px;">
+                const switchFontSize = Math.round(11 * fontScale);
+                elementDiv.innerHTML = `<div style="display: flex; align-items: center; font-size: ${switchFontSize}px;">
                     <div style="background: ${switchColor}; color: var(--fg-color, #fff); padding: 1px 4px; border-radius: 2px; margin-right: 4px;">${switchState}</div>
                     <span style="color: var(--fg-color, #fff);">${properties.text}</span>
                 </div>`;
                 break;
                 
             case 'List':
-                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: 10px;">List (${properties.items.length} items)</div>`;
+                const listFontSize = Math.round(10 * fontScale);
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: ${listFontSize}px;">List (${properties.items.length} items)</div>`;
                 break;
                 
             case 'TabControl':
@@ -2819,6 +2839,9 @@ class UIDesigner {
         // Switch framework
         this.currentFramework = framework;
         
+        // Show/hide KubeUI font toggle
+        this.toggleKubeUIFontSelector();
+        
         // Update terminal size and grid when switching to/from KubeUI
         this.updateTerminalSize();
         
@@ -2839,6 +2862,23 @@ class UIDesigner {
         
         // Update element palette
         this.updateElementPalette();
+    }
+    
+    toggleKubeUIFontSelector() {
+        const fontToggle = document.getElementById('kubeUIFontToggle');
+        if (fontToggle) {
+            fontToggle.style.display = this.currentFramework === 'kubeui' ? 'block' : 'none';
+        }
+    }
+    
+    updateKubeUIFontMode() {
+        if (this.currentFramework !== 'kubeui') return;
+        
+        // Update visual scaling for text elements on canvas
+        this.updateElementPositions();
+        
+        // Store font mode for code generation
+        this.saveState();
     }
     
     updatePageTitle() {
@@ -4882,6 +4922,10 @@ class UIDesigner {
         let code = '-- KubeUI Generated Code\n';
         code += '-- Generated by XCC Designer\n';
         code += 'local gui = require("kubeui")\n\n';
+        
+        // Add font mode setting
+        code += `-- Set font mode\n`;
+        code += `gui.setFont("${this.kubeUIFontMode}")\n\n`;
         
         if (smartMarginsEnabled) {
             code += '-- Smart Margin System: Auto-adapt to different screen sizes\n';
