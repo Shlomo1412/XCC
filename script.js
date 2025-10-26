@@ -4973,11 +4973,12 @@ class UIDesigner {
                 (smartMarginsEnabled ? `, smartSize(${w}, ${h})` : `, ${w}, ${h}`) : '';
             
             switch (element.type) {
-                case 'Button':
+                case 'Button': {
                     const text = element.properties.text || 'Button';
-                    code += `local ${varName} = manager:add(gui.Button(${posParams}${sizeParams}, "${text}", function()\n`;
+                    code += `local ${varName} = gui.Button(${posParams}${sizeParams}, "${text}", function()\n`;
                     code += `    -- Button click handler\n`;
-                    code += `end))\n`;
+                    code += `end)\n`;
+                    code += `manager:add(${varName})\n`;
                     
                     // Add color properties if different from default
                     if (element.properties.bgColor && element.properties.bgColor !== 'blue') {
@@ -4990,9 +4991,11 @@ class UIDesigner {
                         code += `${varName}.hoverColor = colors.${element.properties.hoverColor}\n`;
                     }
                     break;
-                    
-                case 'Panel':
-                    code += `local ${varName} = manager:add(gui.Panel(${posParams}${sizeParams}))\n`;
+                }
+                
+                case 'Panel': {
+                    code += `local ${varName} = gui.Panel(${posParams}${sizeParams})\n`;
+                    code += `manager:add(${varName})\n`;
                     
                     if (element.properties.bgColor && element.properties.bgColor !== 'black') {
                         code += `${varName}.bgColor = colors.${element.properties.bgColor}\n`;
@@ -5001,10 +5004,12 @@ class UIDesigner {
                         code += `${varName}.borderColor = colors.${element.properties.borderColor}\n`;
                     }
                     break;
-                    
-                case 'Label':
+                }
+                
+                case 'Label': {
                     const labelText = element.properties.text || 'Label';
-                    code += `local ${varName} = manager:add(gui.Label(${posParams}, "${labelText}"))\n`;
+                    code += `local ${varName} = gui.Label(${posParams}, "${labelText}")\n`;
+                    code += `manager:add(${varName})\n`;
                     
                     if (element.properties.textColor && element.properties.textColor !== 'white') {
                         code += `${varName}.textColor = colors.${element.properties.textColor}\n`;
@@ -5013,28 +5018,33 @@ class UIDesigner {
                         code += `${varName}.scale = ${element.properties.scale}\n`;
                     }
                     break;
-                    
-                case 'Checkbox':
+                }
+                
+                case 'Checkbox': {
                     const label = element.properties.label || 'Checkbox';
                     const checked = element.properties.checked ? 'true' : 'false';
-                    code += `local ${varName} = manager:add(gui.Checkbox(${posParams}, "${label}", ${checked}, function(checked)\n`;
+                    code += `local ${varName} = gui.Checkbox(${posParams}, "${label}", ${checked}, function(checked)\n`;
                     code += `    -- Checkbox change handler\n`;
-                    code += `end))\n`;
+                    code += `end)\n`;
+                    code += `manager:add(${varName})\n`;
                     
                     if (element.properties.size && element.properties.size !== 8) {
                         code += `${varName}.size = ${element.properties.size}\n`;
                     }
                     break;
-                    
-                case 'Slider':
+                }
+                
+                case 'Slider': {
                     const min = element.properties.min || 0;
                     const max = element.properties.max || 100;
                     const value = element.properties.value || min;
-                    code += `local ${varName} = manager:add(gui.Slider(${posParams}, ${w}, ${min}, ${max}, ${value}, function(value)\n`;
+                    code += `local ${varName} = gui.Slider(${posParams}, ${w}, ${min}, ${max}, ${value}, function(value)\n`;
                     code += `    -- Slider value change handler\n`;
-                    code += `end))\n`;
+                    code += `end)\n`;
+                    code += `manager:add(${varName})\n`;
                     break;
-                    
+                }
+                
                 default:
                     code += `-- ${element.type} (custom implementation needed)\n`;
                     break;
