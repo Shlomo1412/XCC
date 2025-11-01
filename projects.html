@@ -605,6 +605,168 @@
                 padding: 1.5rem;
             }
         }
+
+        /* Breadcrumb Navigation */
+        .breadcrumb-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .breadcrumb-item {
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .breadcrumb-item:last-child {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .breadcrumb-drop-zone.breadcrumb-drag-over {
+            background: var(--primary-color);
+            color: var(--bg-dark);
+            transform: scale(1.1);
+        }
+
+        /* Folder Card Styles */
+        .folder-card {
+            border-left: 4px solid var(--secondary-color);
+            background: linear-gradient(135deg, var(--bg-card), #1a1a1a);
+        }
+
+        .folder-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(255, 107, 0, 0.2);
+        }
+
+        .folder-card .project-title {
+            color: var(--secondary-color);
+        }
+
+        /* Small buttons */
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-open {
+            background: var(--gradient-2);
+            color: white;
+        }
+
+        .btn-move {
+            background: linear-gradient(135deg, #9c27b0, #e91e63);
+            color: white;
+        }
+
+        /* Drag and Drop Styles */
+        .drag-handle {
+            color: var(--text-muted);
+            cursor: grab;
+            margin-right: 0.5rem;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover .drag-handle {
+            opacity: 1;
+        }
+
+        .project-card[draggable="true"] {
+            cursor: grab;
+        }
+
+        .project-card.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg) scale(1.05);
+            z-index: 1000;
+            box-shadow: 0 20px 40px rgba(0, 255, 136, 0.3);
+        }
+
+        .folder-card.drag-over {
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.2), rgba(255, 107, 0, 0.1));
+            border-color: var(--secondary-color);
+            transform: scale(1.02);
+            box-shadow: 0 25px 50px rgba(255, 107, 0, 0.4);
+        }
+
+        .folder-card.drag-over::before {
+            content: "Drop here to move project";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .projects-grid.grid-drag-over {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px dashed var(--primary-color);
+            border-radius: 12px;
+        }
+
+        .projects-grid.grid-drag-over::after {
+            content: "Drop here to organize in current folder";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--primary-color);
+            color: var(--bg-dark);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            z-index: 100;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Update responsive design for breadcrumb */
+        @media (max-width: 768px) {
+            .breadcrumb-container {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .breadcrumb {
+                justify-content: center;
+            }
+
+            .drag-handle {
+                display: none; /* Hide on mobile for touch-friendly interface */
+            }
+        }
     </style>
 </head>
 <body>
@@ -628,6 +790,14 @@
                     <span class="stat-label">Frameworks Used</span>
                 </div>
             </div>
+        </div>
+
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb-container">
+            <div id="breadcrumb" class="breadcrumb"></div>
+            <button onclick="showCreateFolderModal()" class="btn btn-secondary btn-small">
+                <span>📁+</span> New Folder
+            </button>
         </div>
 
         <div class="project-actions">
@@ -770,6 +940,80 @@
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                 <button onclick="closeModal('deleteModal')" class="btn btn-secondary">Cancel</button>
                 <button onclick="confirmDelete()" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Folder Modal -->
+    <div id="createFolderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createFolderModal')">&times;</span>
+            <h2>Create New Folder</h2>
+            <div style="margin: 1rem 0;">
+                <label for="folderName">Folder Name:</label>
+                <input type="text" id="folderName" class="search-box" placeholder="Enter folder name" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            <div style="margin: 1rem 0;">
+                <label for="folderDescription">Description (optional):</label>
+                <textarea id="folderDescription" class="search-box" placeholder="Enter folder description" style="width: 100%; margin-top: 0.5rem; min-height: 80px; resize: vertical;"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button onclick="closeModal('createFolderModal')" class="btn btn-secondary">Cancel</button>
+                <button onclick="handleCreateFolder()" class="btn btn-primary">Create Folder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Folder Modal -->
+    <div id="editFolderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editFolderModal')">&times;</span>
+            <h2>Edit Folder</h2>
+            <div style="margin: 1rem 0;">
+                <label for="editFolderName">Folder Name:</label>
+                <input type="text" id="editFolderName" class="search-box" placeholder="Enter folder name" style="width: 100%; margin-top: 0.5rem;">
+            </div>
+            <div style="margin: 1rem 0;">
+                <label for="editFolderDescription">Description:</label>
+                <textarea id="editFolderDescription" class="search-box" placeholder="Enter folder description" style="width: 100%; margin-top: 0.5rem; min-height: 80px; resize: vertical;"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button onclick="closeModal('editFolderModal')" class="btn btn-secondary">Cancel</button>
+                <button onclick="handleEditFolder()" class="btn btn-primary">Update Folder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Folder Modal -->
+    <div id="deleteFolderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deleteFolderModal')">&times;</span>
+            <h2>Delete Folder</h2>
+            <p>Are you sure you want to delete the folder "<span id="deleteFolderName"></span>"?</p>
+            <p><strong>All projects and subfolders inside will be moved to the parent folder.</strong></p>
+            <p style="color: #f44336;"><strong>This action cannot be undone.</strong></p>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button onclick="closeModal('deleteFolderModal')" class="btn btn-secondary">Cancel</button>
+                <button onclick="confirmDeleteFolder()" class="btn btn-danger">Delete Folder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Move Project Modal -->
+    <div id="moveProjectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('moveProjectModal')">&times;</span>
+            <h2>Move Project</h2>
+            <p>Move "<span id="moveProjectName"></span>" to:</p>
+            <div style="margin: 1rem 0;">
+                <label for="targetFolder">Target Folder:</label>
+                <select id="targetFolder" class="filter-select" style="width: 100%; margin-top: 0.5rem;">
+                    <option value="">📁 Root Folder</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button onclick="closeModal('moveProjectModal')" class="btn btn-secondary">Cancel</button>
+                <button onclick="handleMoveProject()" class="btn btn-primary">Move Project</button>
             </div>
         </div>
     </div>
