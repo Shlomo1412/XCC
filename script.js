@@ -1,4 +1,4 @@
-// UI Designer for Basalt 2, PixelUI, KubeUI, and PrimeUI - Main JavaScript
+// UI Designer for Basalt 2, PixelUI, PixelUI V2, KubeUI, and PrimeUI - Main JavaScript
 class UIDesigner {
     constructor() {
         this.canvas = document.getElementById('canvas');
@@ -33,6 +33,7 @@ class UIDesigner {
         this.kubeUIFontMode = 'cc'; // 'cc' for regular size, 'kube' for 2.5x bigger
         this.basaltElements = this.initializeBasaltElements();
         this.pixelUIElements = this.initializePixelUIElements();
+        this.pixelUIV2Elements = this.initializePixelUIV2Elements();
         this.primeUIElements = this.initializePrimeUIElements();
         this.kubeUIElements = this.initializeKubeUIElements();
         this.ccColors = this.initializeCCColors();
@@ -85,6 +86,7 @@ class UIDesigner {
         
         const elements = this.currentFramework === 'basalt' ? this.basaltElements : 
                         this.currentFramework === 'pixelui' ? this.pixelUIElements :
+                        this.currentFramework === 'pixeluiv2' ? this.pixelUIV2Elements :
                         this.currentFramework === 'kubeui' ? this.kubeUIElements : this.primeUIElements;
         
         elementPalette.innerHTML = '';
@@ -204,6 +206,14 @@ class UIDesigner {
         'Accordion': '📂',
         'TreeView': '🌳',
         'NumericUpDown': '🔢',
+        
+        // PixelUI V2 elements
+        'Toggle': '🔀',
+        'List': '📋',
+        'Table': '📊',
+        'NotificationToast': '🔔',
+        'LoadingRing': '⏳',
+        'Window': '🪟',
 
         // PrimeUI elements
         'InputBox': '💬',
@@ -530,6 +540,268 @@ class UIDesigner {
                     basic: ['x', 'y', 'width', 'height', 'visible', 'enabled'],
                     appearance: ['color', 'background', 'border', 'buttonColor'],
                     numeric: ['value', 'min', 'max', 'step', 'increment', 'showButtons']
+                }
+            }
+        };
+    }
+    
+    initializePixelUIV2Elements() {
+        return {
+            Frame: {
+                type: 'Frame',
+                defaultProps: {
+                    x: 1, y: 1, width: 15, height: 10,
+                    bg: 'gray', fg: 'white',
+                    border: { color: 'white', thickness: 1 }, visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg', 'border']
+                }
+            },
+            Label: {
+                type: 'Label',
+                defaultProps: {
+                    x: 1, y: 1, width: 8, height: 1,
+                    text: 'Label', bg: 'gray', fg: 'white',
+                    align: 'left', verticalAlign: 'top', wrap: false, visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg'],
+                    text: ['text', 'align', 'verticalAlign', 'wrap']
+                }
+            },
+            Button: {
+                type: 'Button',
+                defaultProps: {
+                    x: 1, y: 1, width: 8, height: 3,
+                    label: 'Button', bg: 'orange', fg: 'black',
+                    border: { color: 'white', thickness: 1 }, visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg', 'border'],
+                    button: ['label']
+                }
+            },
+            CheckBox: {
+                type: 'CheckBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 10, height: 1,
+                    label: 'CheckBox', checked: false, indeterminate: false,
+                    bg: 'gray', fg: 'white', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg'],
+                    checkbox: ['label', 'checked', 'indeterminate']
+                }
+            },
+            Toggle: {
+                type: 'Toggle',
+                defaultProps: {
+                    x: 1, y: 1, width: 6, height: 1,
+                    value: false, bg: 'gray', fg: 'white', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg'],
+                    toggle: ['value']
+                }
+            },
+            TextBox: {
+                type: 'TextBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 15, height: 3,
+                    text: '', placeholder: 'Enter text...', multiline: false,
+                    bg: 'black', fg: 'white', border: { color: 'white', thickness: 1 },
+                    visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg', 'border'],
+                    textbox: ['text', 'placeholder', 'multiline']
+                }
+            },
+            ComboBox: {
+                type: 'ComboBox',
+                defaultProps: {
+                    x: 1, y: 1, width: 12, height: 3,
+                    items: ['Option 1', 'Option 2', 'Option 3'], selectedIndex: 1,
+                    bg: 'black', fg: 'white',
+                    dropdownBg: 'black', dropdownFg: 'white',
+                    highlightBg: 'lightGray', highlightFg: 'black',
+                    border: { color: 'white', thickness: 1 }, visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg', 'dropdownBg', 'dropdownFg', 'highlightBg', 'highlightFg', 'border'],
+                    combobox: ['items', 'selectedIndex']
+                }
+            },
+            RadioButton: {
+                type: 'RadioButton',
+                defaultProps: {
+                    x: 1, y: 1, width: 12, height: 1,
+                    label: 'RadioButton', value: 'option1', group: 'group1', selected: false,
+                    bg: 'gray', fg: 'white', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg'],
+                    radio: ['label', 'value', 'group', 'selected']
+                }
+            },
+            List: {
+                type: 'List',
+                defaultProps: {
+                    x: 1, y: 1, width: 15, height: 8,
+                    items: ['Item 1', 'Item 2', 'Item 3'], bg: 'gray', fg: 'white',
+                    highlightBg: 'lightGray', highlightFg: 'black',
+                    border: { color: 'lightGray', thickness: 1 }, placeholder: 'No items', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg', 'highlightBg', 'highlightFg', 'border'],
+                    list: ['items', 'placeholder']
+                }
+            },
+            Table: {
+                type: 'Table',
+                defaultProps: {
+                    x: 1, y: 1, width: 25, height: 8,
+                    columns: [
+                        { id: 'name', title: 'Name', key: 'name', width: 10 },
+                        { id: 'value', title: 'Value', key: 'value', width: 8 }
+                    ],
+                    data: [
+                        { name: 'Item 1', value: '100' },
+                        { name: 'Item 2', value: '200' }
+                    ],
+                    headerBg: 'lightGray', headerFg: 'black',
+                    highlightBg: 'orange', highlightFg: 'black',
+                    zebra: true, zebraBg: 'lightGray',
+                    rowBg: 'gray', rowFg: 'white',
+                    placeholder: 'No data', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['headerBg', 'headerFg', 'highlightBg', 'highlightFg', 'zebraBg', 'rowBg', 'rowFg'],
+                    table: ['columns', 'data', 'zebra', 'placeholder']
+                }
+            },
+            TreeView: {
+                type: 'TreeView',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 8,
+                    nodes: [
+                        { label: 'Root Node', expanded: true, children: [
+                            { label: 'Child 1' },
+                            { label: 'Child 2' }
+                        ]}
+                    ],
+                    bg: 'gray', fg: 'white',
+                    highlightBg: 'lightGray', highlightFg: 'black',
+                    placeholder: 'No items', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg', 'highlightBg', 'highlightFg'],
+                    tree: ['nodes', 'placeholder']
+                }
+            },
+            Chart: {
+                type: 'Chart',
+                defaultProps: {
+                    x: 1, y: 1, width: 20, height: 8,
+                    chartType: 'bar', 
+                    data: [10, 20, 15, 30, 25],
+                    labels: ['A', 'B', 'C', 'D', 'E'],
+                    bg: 'black', fg: 'white',
+                    showAxis: true, showLabels: true, visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg'],
+                    chart: ['chartType', 'data', 'labels', 'showAxis', 'showLabels']
+                }
+            },
+            Slider: {
+                type: 'Slider',
+                defaultProps: {
+                    x: 1, y: 1, width: 15, height: 1,
+                    value: 50, min: 0, max: 100, step: 1,
+                    bg: 'gray', fg: 'white', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg'],
+                    slider: ['value', 'min', 'max', 'step']
+                }
+            },
+            ProgressBar: {
+                type: 'ProgressBar',
+                defaultProps: {
+                    x: 1, y: 1, width: 18, height: 3,
+                    value: 50, min: 0, max: 100, label: 'Loading...',
+                    showPercent: true, indeterminate: false,
+                    bg: 'gray', fg: 'white',
+                    trackColor: 'gray', fillColor: 'green',
+                    border: { color: 'lightGray', thickness: 1 }, visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg', 'trackColor', 'fillColor', 'border'],
+                    progress: ['value', 'min', 'max', 'label', 'showPercent', 'indeterminate']
+                }
+            },
+            NotificationToast: {
+                type: 'NotificationToast',
+                defaultProps: {
+                    x: 1, y: 1, width: 25, height: 3,
+                    text: 'Notification message', duration: 3000, severity: 'info',
+                    bg: 'gray', fg: 'white', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg'],
+                    notification: ['text', 'duration', 'severity']
+                }
+            },
+            LoadingRing: {
+                type: 'LoadingRing',
+                defaultProps: {
+                    x: 1, y: 1, width: 8, height: 8,
+                    bg: 'black', fg: 'white', visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg']
+                }
+            },
+            Window: {
+                type: 'Window',
+                defaultProps: {
+                    x: 5, y: 3, width: 25, height: 15,
+                    title: 'New Window', bg: 'gray', fg: 'white',
+                    border: { color: 'lightGray', thickness: 1 }, moveable: true, closeable: true, visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'fg', 'border'],
+                    window: ['title', 'moveable', 'closeable']
+                }
+            },
+            Canvas: {
+                type: 'Canvas',
+                defaultProps: {
+                    x: 1, y: 1, width: 15, height: 10,
+                    bg: 'black', border: { color: 'white', thickness: 1 }, visible: true
+                },
+                properties: {
+                    basic: ['x', 'y', 'width', 'height', 'visible'],
+                    appearance: ['bg', 'border']
                 }
             }
         };
@@ -1595,7 +1867,7 @@ class UIDesigner {
     }
     
     updateElementDiv(elementDiv, element) {
-        const { x, y, width, height, w, h, background, foreground, visible, bgColor, fgColor } = element.properties;
+        const { x, y, width, height, w, h, background, foreground, visible, bgColor, fgColor, bg, fg } = element.properties;
         
         // Handle both width/height (Basalt, PixelUI, PrimeUI) and w/h (KubeUI) property names
         const elementWidth = width || w || 1;
@@ -1667,7 +1939,9 @@ class UIDesigner {
                 
             case 'Button':
                 const buttonFontSize = Math.round(11 * fontScale);
-                elementDiv.innerHTML = `<div style="border: 1px solid #666; text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: ${buttonFontSize}px;">${properties.text}</div>`;
+                // Handle different property names: text (Basalt/PixelUI), label (PixelUI V2)
+                const buttonText = properties.label || properties.text || 'Button';
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: ${buttonFontSize}px;">${buttonText}</div>`;
                 break;
                 
             case 'Input':
@@ -1677,14 +1951,17 @@ class UIDesigner {
                 break;
                 
             case 'Checkbox':
+            case 'CheckBox':
                 const checkboxFontSize = Math.round(11 * fontScale);
+                // Handle different property names: text (Basalt/PixelUI), label (PixelUI V2)
+                const checkboxText = properties.label || properties.text || 'CheckBox';
                 if (this.currentFramework === 'basalt') {
                     // For Basalt, text already contains [ ] or [x] format
-                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: ${checkboxFontSize}px;">${properties.text}</span>`;
+                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: ${checkboxFontSize}px;">${checkboxText}</span>`;
                 } else {
-                    // For PixelUI/PrimeUI, add checkbox brackets
-                    const checkmark = properties.checked ? properties.checkedText : '';
-                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: ${checkboxFontSize}px;">[${checkmark}] ${properties.text}</span>`;
+                    // For PixelUI/PrimeUI/PixelUI V2, add checkbox brackets
+                    const checkmark = properties.checked ? (properties.checkedText || 'x') : '';
+                    elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: ${checkboxFontSize}px;">[${checkmark}] ${checkboxText}</span>`;
                 }
                 break;
                 
@@ -1810,6 +2087,111 @@ class UIDesigner {
                 
             case 'DrawImage':
                 elementDiv.innerHTML = `<div style="border: 1px solid #666; text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #666); font-size: 10px;">🖼️ ${properties.data || 'BIMG'}</div>`;
+                break;
+                
+            // PixelUI V2 specific elements
+            case 'RadioButton':
+                const radioFontSize = Math.round(11 * fontScale);
+                const radioText = properties.label || properties.text || 'RadioButton';
+                const radioSelected = properties.selected ? '●' : '○';
+                elementDiv.innerHTML = `<span style="color: var(--fg-color, #fff); font-size: ${radioFontSize}px;">${radioSelected} ${radioText}</span>`;
+                break;
+                
+            case 'Toggle':
+                const toggleFontSize = Math.round(11 * fontScale);
+                const toggleState = properties.value ? 'ON' : 'OFF';
+                const toggleColor = properties.value ? '#00ff00' : '#ff0000';
+                elementDiv.innerHTML = `<div style="display: flex; align-items: center; font-size: ${toggleFontSize}px;">
+                    <div style="background: ${toggleColor}; color: #000; padding: 1px 6px; border-radius: 3px; margin-right: 4px; font-weight: bold;">${toggleState}</div>
+                </div>`;
+                break;
+                
+            case 'TextBox':
+                const textboxFontSize = Math.round(11 * fontScale);
+                const textboxValue = properties.text || properties.placeholder || 'Enter text...';
+                const textboxStyle = properties.text ? 'color: var(--fg-color, #fff)' : 'color: #999';
+                elementDiv.innerHTML = `<input type="text" value="${properties.text || ''}" placeholder="${properties.placeholder || ''}" 
+                    style="width: 100%; height: 100%; background: transparent; border: 1px solid #666; ${textboxStyle}; font-size: ${textboxFontSize}px; padding: 2px;" readonly>`;
+                break;
+                
+            case 'ComboBox':
+                const comboFontSize = Math.round(11 * fontScale);
+                const comboItems = properties.items || [];
+                const selectedItem = comboItems[properties.selectedIndex - 1] || 'Select...';
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; display: flex; justify-content: space-between; align-items: center; color: var(--fg-color, #fff); font-size: ${comboFontSize}px;">
+                    <span>${selectedItem}</span><span>▼</span>
+                </div>`;
+                break;
+                
+            case 'TreeView':
+                const treeFontSize = Math.round(10 * fontScale);
+                const treeNodes = properties.nodes || [];
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; overflow: hidden; color: var(--fg-color, #fff); font-size: ${treeFontSize}px;">
+                    Tree (${treeNodes.length} nodes)
+                </div>`;
+                break;
+                
+            case 'Table':
+                const tableFontSize = Math.round(9 * fontScale);
+                const tableData = properties.data || [];
+                const tableColumns = properties.columns || [];
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; overflow: hidden; color: var(--fg-color, #fff); font-size: ${tableFontSize}px;">
+                    <div style="background: var(--header-bg-color, #333); padding: 1px; border-bottom: 1px solid #666;">
+                        Table (${tableColumns.length} cols, ${tableData.length} rows)
+                    </div>
+                </div>`;
+                break;
+                
+            case 'Chart':
+                const chartFontSize = Math.round(10 * fontScale);
+                const chartType = properties.chartType || 'bar';
+                const chartData = properties.data || [];
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; padding: 2px; text-align: center; color: var(--fg-color, #fff); font-size: ${chartFontSize}px;">
+                    📊 ${chartType.toUpperCase()} Chart (${chartData.length} points)
+                </div>`;
+                break;
+                
+            case 'Slider':
+                const sliderValue = properties.value || 0;
+                const sliderMax = properties.max || 100;
+                const sliderPercent = (sliderValue / sliderMax) * 100;
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; position: relative; background: #333; height: 100%;">
+                    <div style="background: #00ff00; width: ${sliderPercent}%; height: 100%;"></div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #000; font-size: 10px; font-weight: bold;">${sliderValue}</div>
+                </div>`;
+                break;
+                
+            case 'NotificationToast':
+                const toastFontSize = Math.round(10 * fontScale);
+                const toastText = properties.text || 'Notification';
+                const severityColors = { info: '#3182ce', success: '#38a169', warning: '#d69e2e', error: '#e53e3e' };
+                const toastColor = severityColors[properties.severity] || '#3182ce';
+                elementDiv.innerHTML = `<div style="background: ${toastColor}; color: white; padding: 4px; border-radius: 4px; font-size: ${toastFontSize}px; border: 1px solid #666;">
+                    🔔 ${toastText}
+                </div>`;
+                break;
+                
+            case 'LoadingRing':
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; text-align: center; line-height: ${elementDiv.style.height}; color: var(--fg-color, #fff); font-size: 10px;">
+                    ⏳ Loading...
+                </div>`;
+                break;
+                
+            case 'Window':
+                const windowTitle = properties.title || 'Window';
+                const windowFontSize = Math.round(10 * fontScale);
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; height: 100%;">
+                    <div style="background: var(--header-bg-color, #333); color: var(--fg-color, #fff); padding: 2px; border-bottom: 1px solid #666; font-size: ${windowFontSize}px; display: flex; justify-content: space-between;">
+                        <span>${windowTitle}</span><span>${properties.closeable !== false ? '×' : ''}</span>
+                    </div>
+                    <div style="padding: 2px; color: var(--fg-color, #fff); font-size: ${windowFontSize}px;">Window Content</div>
+                </div>`;
+                break;
+                
+            case 'Canvas':
+                elementDiv.innerHTML = `<div style="border: 1px solid #666; background: #000; text-align: center; line-height: ${elementDiv.style.height}; color: #666; font-size: 10px;">
+                    🎨 Canvas
+                </div>`;
                 break;
                 
             default:
@@ -2021,6 +2403,51 @@ class UIDesigner {
         setTimeout(() => this.autoSaveProject(), 500);
     }
     
+    updateBorderEnabled(element, property, enabled) {
+        if (enabled) {
+            // Create border object with default values
+            element.properties[property] = {
+                color: 'white',
+                thickness: 1
+            };
+        } else {
+            // Disable border
+            element.properties[property] = false;
+        }
+        
+        const elementDiv = document.querySelector(`[data-element-id="${element.id}"]`);
+        if (elementDiv) {
+            this.updateElementDiv(elementDiv, element);
+        }
+        
+        if (this.selectedElement && this.selectedElement.id === element.id) {
+            this.updatePropertiesPanel();
+        }
+        
+        // Save state after making changes (debounced)
+        clearTimeout(this.propertyChangeTimeout);
+        this.propertyChangeTimeout = setTimeout(() => {
+            this.saveState();
+        }, 500);
+    }
+    
+    updateBorderProperty(element, property, borderProp, value) {
+        if (element.properties[property] && typeof element.properties[property] === 'object') {
+            element.properties[property][borderProp] = value;
+            
+            const elementDiv = document.querySelector(`[data-element-id="${element.id}"]`);
+            if (elementDiv) {
+                this.updateElementDiv(elementDiv, element);
+            }
+            
+            // Save state after making changes (debounced)
+            clearTimeout(this.propertyChangeTimeout);
+            this.propertyChangeTimeout = setTimeout(() => {
+                this.saveState();
+            }, 500);
+        }
+    }
+    
     showProperties(element) {
         this.propertiesContent.innerHTML = '';
         
@@ -2103,7 +2530,12 @@ class UIDesigner {
                    property === 'selectedBackground' || property === 'selectedForeground' ||
                    property === 'headerColor' || property === 'selectedColor' || property === 'gridColor' ||
                    property === 'nodeColor' || property === 'barColor' || property === 'sliderColor' ||
-                   property === 'progressColor' || property === 'separatorColor') {
+                   property === 'progressColor' || property === 'separatorColor' ||
+                   // PixelUI V2 color properties
+                   property === 'bg' || property === 'fg' || property === 'dropdownBg' || property === 'dropdownFg' ||
+                   property === 'highlightBg' || property === 'highlightFg' || property === 'headerBg' || 
+                   property === 'headerFg' || property === 'zebraBg' || property === 'rowBg' || property === 'rowFg' ||
+                   property === 'trackColor' || property === 'fillColor') {
             // Color picker
             const colorOptions = Object.keys(this.ccColors).map(color => 
                 `<option value="${color}" ${value === color ? 'selected' : ''}>${color}</option>`
@@ -2191,6 +2623,45 @@ class UIDesigner {
             } else {
                 inputHtml = `<textarea rows="3" onchange="designer.updateElementProperty(designer.selectedElement, '${property}', this.value.split('\\n').filter(x => x.trim()))">${value.join('\n')}</textarea>`;
             }
+        } else if (property === 'border' && typeof value === 'object') {
+            // Special handling for border objects
+            const borderColor = value?.color || 'white';
+            const borderThickness = value?.thickness || 1;
+            const hasBorder = value !== null && value !== false;
+            
+            const colorOptions = Object.keys(this.ccColors).map(color => 
+                `<option value="${color}" ${borderColor === color ? 'selected' : ''}>${color}</option>`
+            ).join('');
+            
+            inputHtml = `
+                <div class="border-config">
+                    <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <input type="checkbox" ${hasBorder ? 'checked' : ''} 
+                               onchange="designer.updateBorderEnabled(designer.selectedElement, '${property}', this.checked)" 
+                               style="margin-right: 8px;">
+                        <label>Enable Border</label>
+                    </div>
+                    ${hasBorder ? `
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 12px; color: #666;">Color</label>
+                            <div class="color-input">
+                                <div class="cc-color-${borderColor}" style="width: 24px; height: 24px; border-radius: 4px; border: 1px solid #ccc;"></div>
+                                <select onchange="designer.updateBorderProperty(designer.selectedElement, '${property}', 'color', this.value)">
+                                    ${colorOptions}
+                                </select>
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 12px; color: #666;">Thickness</label>
+                            <input type="number" min="1" max="5" value="${borderThickness}" 
+                                   onchange="designer.updateBorderProperty(designer.selectedElement, '${property}', 'thickness', parseInt(this.value) || 1)"
+                                   style="width: 100%;">
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
         } else if (typeof value === 'object' && value !== null) {
             if (property === 'series' && (element.type === 'Graph' || element.type === 'BarChart' || element.type === 'LineChart')) {
                 inputHtml = this.createSeriesManager(element, property);
@@ -2851,6 +3322,8 @@ class UIDesigner {
             frameworkDisplayName = 'Basalt 2 UI Designer';
         } else if (this.currentFramework === 'pixelui') {
             frameworkDisplayName = 'PixelUI Designer';
+        } else if (this.currentFramework === 'pixeluiv2') {
+            frameworkDisplayName = 'PixelUI V2 Designer';
         } else if (this.currentFramework === 'kubeui') {
             frameworkDisplayName = 'KubeUI Designer';
         } else if (this.currentFramework === 'primeui') {
@@ -2896,6 +3369,8 @@ class UIDesigner {
                 frameworkDisplayName = 'Basalt 2 UI Designer';
             } else if (this.currentFramework === 'pixelui') {
                 frameworkDisplayName = 'PixelUI Designer';
+            } else if (this.currentFramework === 'pixeluiv2') {
+                frameworkDisplayName = 'PixelUI V2 Designer';
             } else if (this.currentFramework === 'kubeui') {
                 frameworkDisplayName = 'KubeUI Designer';
             } else if (this.currentFramework === 'primeui') {
@@ -2928,7 +3403,10 @@ class UIDesigner {
         }
         
         if (textarea) {
-            const framework = this.currentFramework === 'basalt' ? 'Basalt' : 'PixelUI';
+            const framework = this.currentFramework === 'basalt' ? 'Basalt' : 
+                             this.currentFramework === 'pixelui' ? 'PixelUI' :
+                             this.currentFramework === 'pixeluiv2' ? 'PixelUI V2' :
+                             this.currentFramework === 'kubeui' ? 'KubeUI' : 'PrimeUI';
             textarea.placeholder = `Paste your ${framework} code or JSON here...`;
         }
         
@@ -3046,7 +3524,10 @@ class UIDesigner {
         // Update any framework-specific UI elements
         const frameworkDisplay = document.getElementById('currentFramework');
         if (frameworkDisplay) {
-            frameworkDisplay.textContent = this.currentFramework === 'basalt' ? 'Basalt' : 'PixelUI';
+            frameworkDisplay.textContent = this.currentFramework === 'basalt' ? 'Basalt' : 
+                                           this.currentFramework === 'pixelui' ? 'PixelUI' :
+                                           this.currentFramework === 'pixeluiv2' ? 'PixelUI V2' :
+                                           this.currentFramework === 'kubeui' ? 'KubeUI' : 'PrimeUI';
         }
         
         // Clear and rebuild the properties panel for the selected element
@@ -3654,6 +4135,7 @@ class UIDesigner {
     getCurrentElements() {
         return this.currentFramework === 'basalt' ? this.basaltElements : 
                this.currentFramework === 'pixelui' ? this.pixelUIElements :
+               this.currentFramework === 'pixeluiv2' ? this.pixelUIV2Elements :
                this.currentFramework === 'kubeui' ? this.kubeUIElements : this.primeUIElements;
     }
     
@@ -3662,6 +4144,8 @@ class UIDesigner {
             return this.generateBasaltCode();
         } else if (this.currentFramework === 'pixelui') {
             return this.generatePixelUICode();
+        } else if (this.currentFramework === 'pixeluiv2') {
+            return this.generatePixelUIV2Code();
         } else if (this.currentFramework === 'kubeui') {
             return this.generateKubeUICode();
         } else if (this.currentFramework === 'primeui') {
@@ -4922,6 +5406,140 @@ class UIDesigner {
         return code;
     }
 
+    generatePixelUIV2Code() {
+        // Check if smart margins are enabled
+        const smartMarginsEnabled = document.getElementById('smartMargins')?.checked || false;
+        
+        let code = '-- PixelUI V2 Generated Code\n';
+        code += 'local pixelui = require("pixelui")\n\n';
+        
+        if (smartMarginsEnabled) {
+            code += '-- Smart Margin System: Auto-adapt to different screen sizes\n';
+            code += 'local termW, termH = term.getSize()\n';
+            code += `local designWidth, designHeight = ${this.terminalWidth}, ${this.terminalHeight}\n`;
+            code += 'local scaleX, scaleY = termW / designWidth, termH / designHeight\n';
+            code += 'local function smartPos(pos) return math.floor(pos * scaleX + 0.5) end\n';
+            code += 'local function smartPosY(pos) return math.floor(pos * scaleY + 0.5) end\n';
+            code += 'local function smartSize(size, isWidth) return math.max(1, math.floor(size * (isWidth and scaleX or scaleY) + 0.5)) end\n\n';
+        }
+        
+        code += '-- Create the application\n';
+        code += 'local app = pixelui.create()\n';
+        code += 'local root = app:getRoot()\n\n';
+        
+        // Add elements
+        const sortedElements = Array.from(this.elements.values()).sort((a, b) => {
+            const aZ = a.properties.z || 0;
+            const bZ = b.properties.z || 0;
+            return aZ - bZ;
+        });
+        
+        sortedElements.forEach((element, index) => {
+            const varName = `${element.type.toLowerCase()}${index + 1}`;
+            const elementDef = this.pixelUIV2Elements[element.type];
+            
+            code += `-- ${element.type} element\n`;
+            
+            // Convert element type to correct PixelUI V2 function name
+            let pixelUIFunctionName = '';
+            if (element.type === 'Frame') {
+                pixelUIFunctionName = 'createFrame';
+            } else if (element.type === 'Label') {
+                pixelUIFunctionName = 'createLabel';
+            } else if (element.type === 'Button') {
+                pixelUIFunctionName = 'createButton';
+            } else if (element.type === 'CheckBox') {
+                pixelUIFunctionName = 'createCheckBox';
+            } else if (element.type === 'Toggle') {
+                pixelUIFunctionName = 'createToggle';
+            } else if (element.type === 'TextBox') {
+                pixelUIFunctionName = 'createTextBox';
+            } else if (element.type === 'ComboBox') {
+                pixelUIFunctionName = 'createComboBox';
+            } else if (element.type === 'RadioButton') {
+                pixelUIFunctionName = 'createRadioButton';
+            } else if (element.type === 'List') {
+                pixelUIFunctionName = 'createList';
+            } else if (element.type === 'Table') {
+                pixelUIFunctionName = 'createTable';
+            } else if (element.type === 'TreeView') {
+                pixelUIFunctionName = 'createTreeView';
+            } else if (element.type === 'Chart') {
+                pixelUIFunctionName = 'createChart';
+            } else if (element.type === 'Slider') {
+                pixelUIFunctionName = 'createSlider';
+            } else if (element.type === 'ProgressBar') {
+                pixelUIFunctionName = 'createProgressBar';
+            } else if (element.type === 'NotificationToast') {
+                pixelUIFunctionName = 'createNotificationToast';
+            } else if (element.type === 'LoadingRing') {
+                pixelUIFunctionName = 'createLoadingRing';
+            } else if (element.type === 'Window') {
+                pixelUIFunctionName = 'createWindow';
+            } else if (element.type === 'Canvas') {
+                pixelUIFunctionName = 'createFreeDraw';
+            } else {
+                pixelUIFunctionName = `create${element.type}`;
+            }
+            
+            code += `local ${varName} = app:${pixelUIFunctionName}({\n`;
+            code += `    parent = root,\n`;
+            
+            // Add properties
+            Object.entries(element.properties).forEach(([key, value]) => {
+                // Always include essential properties like width and height, even if they match defaults
+                const isEssentialProperty = ['width', 'height', 'x', 'y'].includes(key);
+                
+                if (isEssentialProperty || elementDef.defaultProps[key] !== value) {
+                    // Apply smart margins to positioning and sizing
+                    if (smartMarginsEnabled && key === 'x') {
+                        code += `    ${key} = smartPos(${value}),\n`;
+                    } else if (smartMarginsEnabled && key === 'y') {
+                        code += `    ${key} = smartPosY(${value}),\n`;
+                    } else if (smartMarginsEnabled && key === 'width') {
+                        code += `    ${key} = smartSize(${value}, true),\n`;
+                    } else if (smartMarginsEnabled && key === 'height') {
+                        code += `    ${key} = smartSize(${value}, false),\n`;
+                    } else if (typeof value === 'string' && (key.includes('Color') || key === 'bg' || key === 'fg')) {
+                        // PixelUI V2 uses colors.* format
+                        if (value.startsWith('colors.')) {
+                            code += `    ${key} = ${value},\n`;
+                        } else {
+                            code += `    ${key} = colors.${value},\n`;
+                        }
+                    } else if (typeof value === 'string') {
+                        code += `    ${key} = "${value}",\n`;
+                    } else if (Array.isArray(value)) {
+                        if (value.length === 0) {
+                            code += `    ${key} = {},\n`;
+                        } else {
+                            // Use convertToLuaTable for each array item to handle objects properly
+                            const items = value.map(v => this.convertToLuaTable(v));
+                            code += `    ${key} = {${items.join(', ')}},\n`;
+                        }
+                    } else if (typeof value === 'object' && value !== null) {
+                        // Handle objects (like chart data, border config)
+                        if (value === null || (typeof value === 'object' && Object.keys(value).length === 0)) {
+                            code += `    ${key} = nil,\n`;
+                        } else {
+                            const luaTable = this.convertToLuaTable(value);
+                            code += `    ${key} = ${luaTable},\n`;
+                        }
+                    } else {
+                        code += `    ${key} = ${value},\n`;
+                    }
+                }
+            });
+            
+            code += '})\n\n';
+        });
+        
+        code += '-- Run the application\n';
+        code += 'app:run()';
+        
+        return code;
+    }
+
     generateKubeUICode() {
         // Check if smart margins are enabled
         const smartMarginsEnabled = document.getElementById('smartMargins')?.checked || false;
@@ -5183,14 +5801,19 @@ class UIDesigner {
             terminal: {
                 width: this.terminalWidth,
                 height: this.terminalHeight,
-                title: `${this.currentFramework === 'basalt' ? 'Basalt' : 'PixelUI'} UI`
+                title: `${this.currentFramework === 'basalt' ? 'Basalt' : 
+                         this.currentFramework === 'pixelui' ? 'PixelUI' :
+                         this.currentFramework === 'pixeluiv2' ? 'PixelUI V2' :
+                         this.currentFramework === 'kubeui' ? 'KubeUI' : 'PrimeUI'} UI`
             },
             
             // Element Data with Enhanced Information
             elements: Array.from(this.elements.values()).map(element => {
-                const elementDef = this.currentFramework === 'basalt' ? 
-                    this.basaltElements[element.type] : 
-                    this.pixelUIElements[element.type];
+                const elementDef = this.currentFramework === 'basalt' ? this.basaltElements[element.type] : 
+                                  this.currentFramework === 'pixelui' ? this.pixelUIElements[element.type] :
+                                  this.currentFramework === 'pixeluiv2' ? this.pixelUIV2Elements[element.type] :
+                                  this.currentFramework === 'kubeui' ? this.kubeUIElements[element.type] : 
+                                  this.primeUIElements[element.type];
                 
                 return {
                     id: element.id,
@@ -5273,7 +5896,9 @@ class UIDesigner {
         const a = document.createElement('a');
         a.href = url;
         const baseFilename = this.currentFramework === 'basalt' ? 'basalt-ui' : 
-                            this.currentFramework === 'pixelui' ? 'pixelui-ui' : 'primeui-ui';
+                            this.currentFramework === 'pixelui' ? 'pixelui-ui' :
+                            this.currentFramework === 'pixeluiv2' ? 'pixeluiv2-ui' :
+                            this.currentFramework === 'kubeui' ? 'kubeui-ui' : 'primeui-ui';
         a.download = `${baseFilename}.${extension}`;
         a.click();
         
@@ -5574,6 +6199,8 @@ class UIDesigner {
                 frameworkDisplayName = 'Basalt 2 UI Designer';
             } else if (this.currentFramework === 'pixelui') {
                 frameworkDisplayName = 'PixelUI Designer';
+            } else if (this.currentFramework === 'pixeluiv2') {
+                frameworkDisplayName = 'PixelUI V2 Designer';
             } else if (this.currentFramework === 'kubeui') {
                 frameworkDisplayName = 'KubeUI Designer';
             } else if (this.currentFramework === 'primeui') {
