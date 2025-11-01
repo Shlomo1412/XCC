@@ -732,12 +732,13 @@ class UIDesigner {
                 defaultProps: {
                     x: 1, y: 1, width: 15, height: 1,
                     value: 50, min: 0, max: 100, step: 1,
+                    rangeSlider: false, valueStart: 25, valueEnd: 75,
                     bg: 'gray', fg: 'white', visible: true
                 },
                 properties: {
                     basic: ['x', 'y', 'width', 'height', 'visible'],
                     appearance: ['bg', 'fg'],
-                    slider: ['value', 'min', 'max', 'step']
+                    slider: ['value', 'min', 'max', 'step', 'rangeSlider', 'valueStart', 'valueEnd']
                 }
             },
             ProgressBar: {
@@ -2027,11 +2028,23 @@ class UIDesigner {
                 break;
                 
             case 'Slider':
-                const sliderPos = (properties.step / properties.max) * 100;
-                if (properties.horizontal) {
-                    elementDiv.innerHTML = `<div style="border: 1px solid #666; position: relative; height: 100%;"><div style="position: absolute; left: ${sliderPos}%; top: 0; width: 4px; height: 100%; background: var(--slider-color, blue);"></div></div>`;
+                if (properties.rangeSlider) {
+                    // Range slider with two handles
+                    const startPos = ((properties.valueStart || 25) / (properties.max || 100)) * 100;
+                    const endPos = ((properties.valueEnd || 75) / (properties.max || 100)) * 100;
+                    elementDiv.innerHTML = `<div style="border: 1px solid #666; position: relative; height: 100%; background: #333;">
+                        <div style="position: absolute; left: ${startPos}%; width: ${endPos - startPos}%; height: 100%; background: var(--slider-color, blue); opacity: 0.3;"></div>
+                        <div style="position: absolute; left: ${startPos}%; top: 0; width: 4px; height: 100%; background: var(--slider-color, blue);"></div>
+                        <div style="position: absolute; left: ${endPos}%; top: 0; width: 4px; height: 100%; background: var(--slider-color, blue);"></div>
+                    </div>`;
                 } else {
-                    elementDiv.innerHTML = `<div style="border: 1px solid #666; position: relative; width: 100%;"><div style="position: absolute; top: ${100-sliderPos}%; left: 0; width: 100%; height: 4px; background: var(--slider-color, blue);"></div></div>`;
+                    // Regular slider with single handle
+                    const sliderPos = ((properties.value || 50) / (properties.max || 100)) * 100;
+                    if (properties.horizontal) {
+                        elementDiv.innerHTML = `<div style="border: 1px solid #666; position: relative; height: 100%;"><div style="position: absolute; left: ${sliderPos}%; top: 0; width: 4px; height: 100%; background: var(--slider-color, blue);"></div></div>`;
+                    } else {
+                        elementDiv.innerHTML = `<div style="border: 1px solid #666; position: relative; width: 100%;"><div style="position: absolute; top: ${100-sliderPos}%; left: 0; width: 100%; height: 4px; background: var(--slider-color, blue);"></div></div>`;
+                    }
                 }
                 break;
                 
@@ -5483,12 +5496,11 @@ class UIDesigner {
             }
             
             code += `local ${varName} = app:${pixelUIFunctionName}({\n`;
-            code += `    parent = root,\n`;
             
             // Add properties
             Object.entries(element.properties).forEach(([key, value]) => {
                 // Always include essential properties like width and height, even if they match defaults
-                const isEssentialProperty = ['width', 'height', 'x', 'y'].includes(key);
+                const isEssentialProperty = ['width', 'height', 'x', 'y', 'text', 'label'].includes(key);
                 
                 if (isEssentialProperty || elementDef.defaultProps[key] !== value) {
                     // Apply smart margins to positioning and sizing
@@ -5508,7 +5520,12 @@ class UIDesigner {
                             code += `    ${key} = colors.${value},\n`;
                         }
                     } else if (typeof value === 'string') {
-                        code += `    ${key} = "${value}",\n`;
+                        // Ensure text and label are never empty for display elements
+                        if ((key === 'text' || key === 'label') && (!value || value.trim() === '')) {
+                            code += `    ${key} = "${element.type}",\n`;
+                        } else {
+                            code += `    ${key} = "${value}",\n`;
+                        }
                     } else if (Array.isArray(value)) {
                         if (value.length === 0) {
                             code += `    ${key} = {},\n`;
@@ -5531,7 +5548,8 @@ class UIDesigner {
                 }
             });
             
-            code += '})\n\n';
+            code += '})\n';
+            code += `root:addChild(${varName})\n\n`;
         });
         
         code += '-- Run the application\n';
