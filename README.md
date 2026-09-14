@@ -1,3 +1,6 @@
+> [!CAUTION]
+> Due to poor user interface and code quality, this project is archived for now. I am working on a new, improved, React version - stay tuned.
+
 # XCC - ComputerCraft Cross-Compiler
 
 XCC is a comprehensive web-based development toolkit for ComputerCraft and CC: Tweaked programming. The platform provides multiple specialized tools including visual interface designers, image editors, code generators, and project management utilities to streamline ComputerCraft development workflows.
